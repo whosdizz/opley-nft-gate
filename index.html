@@ -1,64 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>PlayOne NFT Gated Player</title>
-  <!-- ✅ Fixed: UMD build of Ethers.js for browser -->
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
-  <style>
-    body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 50px; }
-    button { padding: 12px 24px; font-size: 16px; }
-    audio { margin-top: 30px; }
-  </style>
-</head>
-<body>
-  <h1>🎧 FCK by WHOSDIZZ</h1>
-  <button id="connectBtn">Connect Wallet</button>
-  <div id="status"></div>
-  <div id="player"></div>
+<script>
+  const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
+  const tokenId = 4;
 
-  <script>
-    const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
-    const tokenId = 4;
-    const audioUrl = "https://ipfs.io/ipfs/bafybeigdw4xtv7p2ydp3aygbstf2tijmdncsjcyhbxbxigepsrhyr2unwq";
-    const abi = [
-      "function ownerOf(uint256 tokenId) view returns (address)"
-    ];
+  // ✅ Replace with known working IPFS gateway link for audio
+  const audioUrl = "https://gateway.pinata.cloud/ipfs/bafybeigdw4xtv7p2ydp3aygbstf2tijmdncsjcyhbxbxigepsrhyr2unwq";
 
-    document.getElementById('connectBtn').onclick = async () => {
-      console.log("🔁 Starting connection...");
+  // ✅ Add your IPFS image CID here
+  const coverImageUrl = "https://gateway.pinata.cloud/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi";
 
-      if (typeof window.ethereum === 'undefined') {
-        alert("MetaMask not detected.");
-        return;
+  const abi = [
+    "function ownerOf(uint256 tokenId) view returns (address)"
+  ];
+
+  document.getElementById('connectBtn').onclick = async () => {
+    console.log("🔁 Starting connection...");
+
+    if (typeof window.ethereum === 'undefined') {
+      alert("MetaMask not detected.");
+      return;
+    }
+
+    try {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = provider.getSigner();
+      const userAddress = await signer.getAddress();
+      document.getElementById("status").innerText = `Connected: ${userAddress}`;
+      console.log("✅ Wallet connected:", userAddress);
+
+      const contract = new ethers.Contract(contractAddress, abi, provider);
+      const owner = await contract.ownerOf(tokenId);
+      console.log("✅ Token owner:", owner);
+
+      if (owner.toLowerCase() === userAddress.toLowerCase()) {
+        document.getElementById("player").innerHTML = `
+          <img src="${coverImageUrl}" alt="Cover Art" style="max-width: 300px; margin: 20px auto; display: block;" />
+          <audio controls style="margin-top: 20px; width: 100%;">
+            <source src="${audioUrl}" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+        `;
+      } else {
+        document.getElementById("player").innerHTML =
+          `<p>🚫 You do not own this NFT.</p>`;
       }
 
-      try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-        const userAddress = await signer.getAddress();
-        document.getElementById("status").innerText = `Connected: ${userAddress}`;
-        console.log("✅ Wallet connected:", userAddress);
-
-        const contract = new ethers.Contract(contractAddress, abi, provider);
-
-        const owner = await contract.ownerOf(tokenId);
-        console.log("✅ Token owner:", owner);
-
-        if (owner.toLowerCase() === userAddress.toLowerCase()) {
-          document.getElementById("player").innerHTML =
-            `<audio controls src="${audioUrl}" type="audio/mpeg"></audio>`;
-        } else {
-          document.getElementById("player").innerHTML =
-            `<p>🚫 You do not own this NFT.</p>`;
-        }
-
-      } catch (err) {
-        console.error("❌ Error:", err);
-        document.getElementById("status").innerText = "❌ Could not connect wallet or contract.";
-      }
-    };
-  </script>
-</body>
-</html>
+    } catch (err) {
+      console.error("❌ Error:", err);
+      document.getElementById("status").innerText = "❌ Could not connect wallet or contract.";
+    }
+  };
+</script>
