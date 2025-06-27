@@ -25,63 +25,18 @@
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
 
     async function decryptAndPlay(url, keyHex) {
-      if (!keyHex || typeof keyHex !== "string") {
-        throw new Error("Decryption key is missing or invalid.");
+      console.log("🔐 Using key:", keyHex);
+
+      if (!keyHex || typeof keyHex !== "string" || keyHex.length % 2 !== 0) {
+        throw new Error("❌ Invalid decryption key format.");
       }
+
+      const hexArray = keyHex.match(/.{1,2}/g);
+      if (!hexArray) {
+        throw new Error("❌ Could not parse decryption key.");
+      }
+
+      const keyBytes = new Uint8Array(hexArray.map(b => parseInt(b, 16)));
 
       const response = await fetch(url);
       const encryptedBuffer = await response.arrayBuffer();
-
-      const iv = encryptedBuffer.slice(0, 16);
-      const encryptedContent = encryptedBuffer.slice(16);
-
-      const keyBytes = new Uint8Array(
-        keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))
-      );
-
-      const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
-      const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: new Uint8Array(iv) }, cryptoKey, encryptedContent);
-
-      const audioBlob = new Blob([decrypted], { type: "audio/mpeg" });
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      document.getElementById("player").innerHTML = `
-        <p>🔓 Access granted. Encrypted track unlocked.</p>
-        <audio controls>
-          <source src="${audioUrl}" type="audio/mpeg">
-          Your browser does not support the audio element.
-        </audio>
-      `;
-    }
-
-    document.getElementById('connectBtn').onclick = async () => {
-      document.getElementById("status").innerText = "🔁 Connecting...";
-
-      if (typeof window.ethereum === 'undefined') {
-        alert("MetaMask not detected.");
-        return;
-      }
-
-      try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-        const userAddress = await signer.getAddress();
-        document.getElementById("status").innerText = `✅ Connected: ${userAddress}`;
-
-        const contract = new ethers.Contract(contractAddress, abi, provider);
-        const owner = await contract.ownerOf(tokenId);
-
-        if (owner.toLowerCase() === userAddress.toLowerCase()) {
-          await decryptAndPlay(ipfsUrl, keyHex);
-        } else {
-          document.getElementById("player").innerHTML = "<p>🚫 You do not own this NFT.</p>";
-        }
-      } catch (err) {
-        console.error("❌ Error:", err);
-        document.getElementById("status").innerText = "❌ Could not verify ownership.";
-      }
-    };
-  </script>
-</body>
-</html>
