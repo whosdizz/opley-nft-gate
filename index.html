@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Encrypted NFT Audio Player</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <title>PlayOne Encrypted NFT Player</title>
+  <!-- ✅ CSP-safe ethers build -->
+  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
   <style>
     body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 50px; }
     button { padding: 12px 24px; font-size: 16px; }
@@ -11,7 +12,7 @@
   </style>
 </head>
 <body>
-  <h1>🔐 NFT-Gated Encrypted Playback</h1>
+  <h1>🔐 NFT-Gated Audio Playback</h1>
   <button id="connectBtn">Connect Wallet</button>
   <div id="status"></div>
   <div id="player"></div>
@@ -24,19 +25,72 @@
 
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
 
-    async function decryptAndPlay(url, keyHex) {
-      console.log("🔐 Using key:", keyHex);
+    async function decryptAndPlay(url) {
+      try {
+        console.log("🔐 keyHex:", keyHex);
 
-      if (!keyHex || typeof keyHex !== "string" || keyHex.length % 2 !== 0) {
-        throw new Error("❌ Invalid decryption key format.");
+        if (!keyHex || typeof keyHex !== "string" || keyHex.length % 2 !== 0) {
+          throw new Error("❌ Invalid or missing decryption key.");
+        }
+
+        const hexArray = keyHex.match(/.{1,2}/g);
+        if (!hexArray) throw new Error("❌ Failed to parse key.");
+
+        const keyBytes = new Uint8Array(hexArray.map(b => parseInt(b, 16)));
+
+        const response = await fetch(url);
+        const encryptedBuffer = await response.arrayBuffer();
+
+        const iv = encryptedBuffer.slice(0, 16);
+        const encryptedContent = encryptedBuffer.slice(16);
+
+        const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
+        const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: new Uint8Array(iv) }, cryptoKey, encryptedContent);
+
+        const audioBlob = new Blob([decrypted], { type: "audio/mpeg" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        document.getElementById("player").innerHTML = `
+          <p>🔓 Track unlocked.</p>
+          <audio controls>
+            <source src="${audioUrl}" type="audio/mpeg">
+            Your browser does not support the audio element.
+          </audio>
+        `;
+      } catch (err) {
+        console.error("❌ Decryption Error:", err);
+        document.getElementById("player").innerHTML = `<p>❌ Unable to decrypt track.</p>`;
+      }
+    }
+
+    document.getElementById("connectBtn").onclick = async () => {
+      document.getElementById("status").innerText = "🔁 Connecting...";
+
+      if (typeof window.ethereum === "undefined") {
+        alert("MetaMask not detected.");
+        return;
       }
 
-      const hexArray = keyHex.match(/.{1,2}/g);
-      if (!hexArray) {
-        throw new Error("❌ Could not parse decryption key.");
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const userAddress = await signer.getAddress();
+        document.getElementById("status").innerText = `✅ Connected: ${userAddress}`;
+
+        const contract = new ethers.Contract(contractAddress, abi, provider);
+        const owner = await contract.ownerOf(tokenId);
+
+        if (owner.toLowerCase() === userAddress.toLowerCase()) {
+          await decryptAndPlay(ipfsUrl);
+        } else {
+          document.getElementById("player").innerHTML = "<p>🚫 You do not own this NFT.</p>";
+        }
+      } catch (err) {
+        console.error("❌ Error:", err);
+        document.getElementById("status").innerText = "❌ Could not verify ownership.";
       }
-
-      const keyBytes = new Uint8Array(hexArray.map(b => parseInt(b, 16)));
-
-      const response = await fetch(url);
-      const encryptedBuffer = await response.arrayBuffer();
+    };
+  </script>
+</body>
+</html>
