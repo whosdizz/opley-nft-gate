@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <h1>🔐 NFT Encrypted Playback</h1>
+  <h1>🔐 NFT-Gated Encrypted Playback</h1>
   <button id="connectBtn">Connect Wallet</button>
   <div id="status"></div>
   <div id="player"></div>
@@ -21,9 +21,14 @@
     const tokenId = 4;
     const ipfsUrl = "https://gateway.pinata.cloud/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
     const keyHex = "1b8cf264e4a6d22336ec87b8066abeb03173a5365e6c68189a16977f0f48a470";
+
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
 
     async function decryptAndPlay(url, keyHex) {
+      if (!keyHex || typeof keyHex !== "string") {
+        throw new Error("Decryption key is missing or invalid.");
+      }
+
       const response = await fetch(url);
       const encryptedBuffer = await response.arrayBuffer();
 
@@ -31,16 +36,17 @@
       const encryptedContent = encryptedBuffer.slice(16);
 
       const keyBytes = new Uint8Array(
-  (keyHex.match(/.{1,2}/g) || []).map(byte => parseInt(byte, 16))
-);
-      const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
+        keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))
+      );
 
+      const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
       const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: new Uint8Array(iv) }, cryptoKey, encryptedContent);
+
       const audioBlob = new Blob([decrypted], { type: "audio/mpeg" });
       const audioUrl = URL.createObjectURL(audioBlob);
 
       document.getElementById("player").innerHTML = `
-        <p>🔓 Decrypted track ready to play:</p>
+        <p>🔓 Access granted. Encrypted track unlocked.</p>
         <audio controls>
           <source src="${audioUrl}" type="audio/mpeg">
           Your browser does not support the audio element.
