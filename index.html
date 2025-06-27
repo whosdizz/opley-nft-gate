@@ -2,20 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PlayOne Encrypted NFT Player</title>
-  <!-- ✅ CSP-safe ethers build -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <title>PlayOne Secure Stream</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <style>
-    body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 50px; }
-    button { padding: 12px 24px; font-size: 16px; }
-    audio { margin-top: 30px; width: 100%; }
+    body { background: #111; color: #fff; font-family: sans-serif; text-align: center; padding: 50px; }
+    button { padding: 12px 24px; font-size: 16px; margin: 10px; }
   </style>
 </head>
 <body>
-  <h1>🔐 NFT-Gated Audio Playback</h1>
+  <h1>🔐 NFT-Gated Secure Audio Stream</h1>
   <button id="connectBtn">Connect Wallet</button>
   <div id="status"></div>
-  <div id="player"></div>
+  <div id="controls" style="display:none; margin-top: 30px;">
+    <button id="playBtn">▶️ Play</button>
+    <button id="stopBtn">⏹️ Stop</button>
+  </div>
 
   <script>
     const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
@@ -24,42 +25,35 @@
     const keyHex = "1b8cf264e4a6d22336ec87b8066abeb03173a5365e6c68189a16977f0f48a470";
 
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
+    let audioContext, source;
 
-    async function decryptAndPlay(url) {
-      try {
-        console.log("🔐 keyHex:", keyHex);
+    async function decryptAudioBuffer() {
+      const response = await fetch(ipfsUrl);
+      const buffer = await response.arrayBuffer();
+      const iv = buffer.slice(0, 16);
+      const encrypted = buffer.slice(16);
 
-        if (!keyHex || typeof keyHex !== "string" || keyHex.length % 2 !== 0) {
-          throw new Error("❌ Invalid or missing decryption key.");
-        }
+      const keyBytes = new Uint8Array(
+        keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16))
+      );
+      const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
+      const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: new Uint8Array(iv) }, cryptoKey, encrypted);
 
-        const hexArray = keyHex.match(/.{1,2}/g);
-        if (!hexArray) throw new Error("❌ Failed to parse key.");
+      audioContext = new AudioContext();
+      return await audioContext.decodeAudioData(decrypted);
+    }
 
-        const keyBytes = new Uint8Array(hexArray.map(b => parseInt(b, 16)));
+    async function playAudio() {
+      const audioBuffer = await decryptAudioBuffer();
+      source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+      source.start(0);
+    }
 
-        const response = await fetch(url);
-        const encryptedBuffer = await response.arrayBuffer();
-
-        const iv = encryptedBuffer.slice(0, 16);
-        const encryptedContent = encryptedBuffer.slice(16);
-
-        const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
-        const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: new Uint8Array(iv) }, cryptoKey, encryptedContent);
-
-        const audioBlob = new Blob([decrypted], { type: "audio/mpeg" });
-        const audioUrl = URL.createObjectURL(audioBlob);
-
-        document.getElementById("player").innerHTML = `
-          <p>🔓 Track unlocked.</p>
-          <audio controls>
-            <source src="${audioUrl}" type="audio/mpeg">
-            Your browser does not support the audio element.
-          </audio>
-        `;
-      } catch (err) {
-        console.error("❌ Decryption Error:", err);
-        document.getElementById("player").innerHTML = `<p>❌ Unable to decrypt track.</p>`;
+    function stopAudio() {
+      if (source) {
+        source.stop();
       }
     }
 
@@ -82,15 +76,18 @@
         const owner = await contract.ownerOf(tokenId);
 
         if (owner.toLowerCase() === userAddress.toLowerCase()) {
-          await decryptAndPlay(ipfsUrl);
+          document.getElementById("controls").style.display = "block";
         } else {
-          document.getElementById("player").innerHTML = "<p>🚫 You do not own this NFT.</p>";
+          document.getElementById("status").innerText = "🚫 You do not own this NFT.";
         }
       } catch (err) {
         console.error("❌ Error:", err);
         document.getElementById("status").innerText = "❌ Could not verify ownership.";
       }
     };
+
+    document.getElementById("playBtn").onclick = playAudio;
+    document.getElementById("stopBtn").onclick = stopAudio;
   </script>
 </body>
 </html>
