@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>PlayOne NFT Gated Player</title>
-  <!-- ✅ Load ethers.js first -->
- <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <!-- ✅ Fixed: UMD build of Ethers.js for browser -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     body { font-family: sans-serif; background: #111; color: #fff; text-align: center; padding: 50px; }
     button { padding: 12px 24px; font-size: 16px; }
@@ -17,7 +17,6 @@
   <div id="status"></div>
   <div id="player"></div>
 
-  <!-- ✅ Now that ethers is loaded, this script will work -->
   <script>
     const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
     const tokenId = 4;
