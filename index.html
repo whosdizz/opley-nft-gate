@@ -30,7 +30,9 @@
       const iv = encryptedBuffer.slice(0, 16);
       const encryptedContent = encryptedBuffer.slice(16);
 
-      const keyBytes = new Uint8Array(keyHex.match(/.(1, 2)/g).map(byte => parseInt(byte, 16)));
+      const keyBytes = new Uint8Array(
+  (keyHex.match(/.{1,2}/g) || []).map(byte => parseInt(byte, 16))
+);
       const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
 
       const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: new Uint8Array(iv) }, cryptoKey, encryptedContent);
