@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Mint SONG1 – WHOSDIZZ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #000;
+      color: #fff;
+      text-align: center;
+      padding: 40px;
+    }
+    button {
+      background-color: #ff4f00;
+      color: #fff;
+      border: none;
+      padding: 16px 32px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    img.cover {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 30px rgba(255, 79, 0, 0.4);
+    }
+    #status {
+      margin-top: 20px;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 Mint SONG1</h1>
+  <p>by WHOSDIZZ · Limited to 1000 copies</p>
+  <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
+  <br>
+  <button onclick="mint()">Mint Now</button>
+  <div id="status">🔌 Connect your wallet to mint</div>
+
+  <script>
+    const contractAddress = "0xYourContractAddressHere";
+    const abi = [
+      "function mint(address to, string memory tokenURI) public",
+    ];
+    const tokenURI = "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74";
+
+    async function mint() {
+      try {
+        if (!window.ethereum) {
+          return document.getElementById("status").innerText = "🦊 Please install MetaMask.";
+        }
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+
+        const contract = new ethers.Contract(contractAddress, abi, signer);
+        const tx = await contract.mint(address, tokenURI);
+
+        document.getElementById("status").innerText = "⏳ Minting in progress...";
+        await tx.wait();
+        document.getElementById("status").innerText = "✅ NFT minted to " + address;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "❌ Minting failed.";
+      }
+    }
+  </script>
+</body>
+</html>
