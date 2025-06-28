@@ -39,6 +39,7 @@
     #status {
       margin-top: 20px;
       color: #ccc;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -58,7 +59,7 @@
     const abi = [
       "function balanceOf(address owner) external view returns (uint256)"
     ];
-    const audioURL_desktop = "https://gateway.pinata.cloud/ipfs/bafybeibcx4mpuw3mvj7v4dio7pgu7msevcxoijvrylxjsyvqagbj7rycnu";
+    const audioURL_desktop = "https://gateway.pinata.cloud/ipfs/bafybeiegqnz3tjtk5sq4jldtispzzugdc7l5b62pmg5k5gm3g6zlcapqge";
     const audioURL_mobile = "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u";
 
     async function connectWallet() {
@@ -80,11 +81,49 @@
         document.getElementById("player").style.display = "block";
 
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        const audioSrc = isMobile ? audioURL_mobile : audioURL_desktop;
-        document.getElementById("audioPlayer").src = audioSrc;
+        if (isMobile) {
+          document.getElementById("audioPlayer").src = audioURL_mobile;
+        } else {
+          document.getElementById("status").innerText += "\\n🔐 Decrypting audio...";
+          fetch(audioURL_desktop)
+            .then(response => response.arrayBuffer())
+            .then(encrypted => decryptAudioBuffer(encrypted))
+            .then(blobUrl => {
+              document.getElementById("audioPlayer").src = blobUrl;
+              document.getElementById("status").innerText = "✅ Decrypted and ready!";
+            })
+            .catch(err => {
+              console.error(err);
+              document.getElementById("status").innerText = "❌ Error decrypting audio.";
+            });
+        }
       } else {
         document.getElementById("status").innerText = "❌ You don't own this NFT.";
       }
+    }
+
+    async function decryptAudioBuffer(encrypted) {
+      const keyHex = "a04d767ac05ddc9df993e1baa5dc58f3";
+      const ivHex = "2e3a81e1b826b2de330616aa6e8884b6";
+
+      const key = await crypto.subtle.importKey(
+        "raw",
+        new Uint8Array(keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))),
+        { name: "AES-CBC" },
+        false,
+        ["decrypt"]
+      );
+
+      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: "AES-CBC", iv },
+        key,
+        encrypted
+      );
+
+      const blob = new Blob([decrypted], { type: "audio/mpeg" });
+      return URL.createObjectURL(blob);
     }
   </script>
 </body>
