@@ -19,11 +19,11 @@
   </div>
 
   <script>
-    const contractAddress = "0xd9145CCE52D386f254917e481eB44e9943F39138"; // ✅ your new contract
-    const tokenId = 0; // ⬅️ change this if you minted a different ID
-    const ipfsUrl = "https://gateway.pinata.cloud/ipfs/YOUR_CID_HERE";
-    const keyHex = "YOUR_AES_KEY_HEX";
-    const ivHex = "YOUR_IV_HEX";
+    const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
+    const tokenId = 4;
+    const ipfsUrl = "https://gateway.pinata.cloud/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
+    const keyHex = "1b8cf264e4a6d22336ec87b8066abeb03173a5365e6c68189a16977f0f48a470";
+    const ivHex = "eb91fa36b84e15201d65c7e1b87cf123";
 
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
     let audioContext, source;
@@ -31,7 +31,7 @@
     async function decryptAudioBuffer() {
       const response = await fetch(ipfsUrl);
       const buffer = await response.arrayBuffer();
-      const encrypted = buffer.slice(16); // Skip IV at the front (optional if you have it stored separately)
+      const encrypted = buffer.slice(16); // skip IV from file
 
       const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
       const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
