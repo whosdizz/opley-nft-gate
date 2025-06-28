@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PlayOne Secure Stream</title>
+  <title>PlayOne Secure Player</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <style>
     body { background: #111; color: #fff; font-family: sans-serif; text-align: center; padding: 50px; }
@@ -10,7 +10,7 @@
   </style>
 </head>
 <body>
-  <h1>🔐 NFT-Gated Secure Audio Stream</h1>
+  <h1>🔐 NFT-Gated Audio Stream</h1>
   <button id="connectBtn">Connect Wallet</button>
   <div id="status"></div>
   <div id="controls" style="display:none; margin-top: 30px;">
@@ -21,8 +21,9 @@
   <script>
     const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
     const tokenId = 4;
-    const ipfsUrl = "https://gateway.pinata.cloud/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
-    const keyHex = "1b8cf264e4a6d22336ec87b8066abeb03173a5365e6c68189a16977f0f48a470";
+    const ipfsUrl = "https://gateway.pinata.cloud/ipfs/YOUR_IPFS_CID";
+    const keyHex = "YOUR_AES_KEY_HEX";
+    const ivHex = "YOUR_IV_HEX";
 
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
     let audioContext, source;
@@ -30,14 +31,13 @@
     async function decryptAudioBuffer() {
       const response = await fetch(ipfsUrl);
       const buffer = await response.arrayBuffer();
-      const iv = buffer.slice(0, 16);
-      const encrypted = buffer.slice(16);
+      const encrypted = buffer.slice(16); // skip IV (not used because we already have it)
 
-      const keyBytes = new Uint8Array(
-        keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16))
-      );
+      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+      const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
+
       const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
-      const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv: new Uint8Array(iv) }, cryptoKey, encrypted);
+      const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, encrypted);
 
       audioContext = new AudioContext();
       return await audioContext.decodeAudioData(decrypted);
@@ -52,9 +52,7 @@
     }
 
     function stopAudio() {
-      if (source) {
-        source.stop();
-      }
+      if (source) source.stop();
     }
 
     document.getElementById("connectBtn").onclick = async () => {
