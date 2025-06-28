@@ -1,16 +1,18 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PlayOne – NFT Player (Pinata Version)</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <title>PlayOne – NFT Stream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     body {
       margin: 0;
-      background-color: #000;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+      background: #000;
       color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -21,48 +23,39 @@
       width: 100%;
       text-align: center;
     }
-    .cover {
-      width: 100%;
-      border-radius: 20px;
-      margin: 20px 0;
-      background: #222;
-      box-shadow: 0 10px 40px rgba(255,255,255,0.1);
-    }
-    h1 { font-size: 1.8em; font-weight: 700; margin: 10px 0; }
-    p { font-size: 1em; color: #aaa; margin-bottom: 20px; }
-    .button {
+    button {
       padding: 14px 28px;
       font-size: 16px;
-      font-weight: 600;
-      background: #007aff;
+      background: #00aaff;
       color: white;
       border: none;
-      border-radius: 12px;
-      margin: 10px 0;
-      width: 90%;
-      cursor: pointer;
+      border-radius: 8px;
+      margin-top: 20px;
     }
-    .button:active { background: #0051c6; }
-    #statusBox {
-      background: #1c1c1e;
-      padding: 14px;
-      border-radius: 12px;
-      margin-top: 10px;
+    img.cover {
       width: 100%;
-      font-size: 15px;
+      border-radius: 16px;
+      margin: 20px 0;
+      box-shadow: 0 10px 40px rgba(255,255,255,0.1);
+    }
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      background: #111;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" alt="Cover Art" />
-    <h1>🎵 FCK</h1>
-    <p>by WHOSDIZZ – NFT Holders Only</p>
-    <button id="connectBtn" class="button">Connect Wallet</button>
-    <div id="statusBox">🔌 Not connected</div>
+    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" />
+    <h1>🎵 FCK – WHOSDIZZ</h1>
+    <p>NFT Required to Unlock</p>
+    <button onclick="connectWallet()">Connect Wallet</button>
+    <div id="status">🔌 Not connected</div>
     <div id="controls" style="display:none;">
-      <button id="playBtn" class="button">▶️ Play</button>
-      <button id="stopBtn" class="button">⏹️ Stop</button>
+      <button onclick="playAudio()">▶️ Play</button>
+      <button onclick="stopAudio()">⏹️ Stop</button>
     </div>
   </div>
 
@@ -73,17 +66,48 @@
     const keyHex = "1b8cf264e4a6d22336ec87b8066abeb03173a5365e6c68189a16977f0f48a470";
     const ivHex = "eb91fa36b84e15201d65c7e1b87cf123";
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
-    let audioContext, source;
+    let provider, signer, audioContext, source;
+
+    async function connectWallet() {
+      try {
+        const wcProvider = new WalletConnectProvider.default({
+          rpc: {
+            11155111: "https://rpc.sepolia.org"
+          },
+          chainId: 11155111,
+          qrcode: true
+        });
+
+        await wcProvider.enable();
+        provider = new ethers.providers.Web3Provider(wcProvider);
+        signer = provider.getSigner();
+        const address = await signer.getAddress();
+
+        document.getElementById("status").innerText = `✅ Connected: ${address}`;
+        const contract = new ethers.Contract(contractAddress, abi, provider);
+        const owner = await contract.ownerOf(tokenId);
+
+        if (owner.toLowerCase() === address.toLowerCase()) {
+          document.getElementById("controls").style.display = "block";
+          document.getElementById("status").innerText = "🔓 NFT verified – You can play!";
+        } else {
+          document.getElementById("status").innerText = "🚫 You do not own this NFT.";
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "❌ Wallet connection failed.";
+      }
+    }
 
     async function decryptAudioBuffer() {
       const response = await fetch(ipfsUrl);
-      if (!response.ok) throw new Error("Failed to fetch audio file");
+      if (!response.ok) throw new Error("Failed to fetch audio");
 
       const buffer = await response.arrayBuffer();
       const encrypted = buffer.slice(16);
-      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-      const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-      const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
+      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(x => parseInt(x, 16)));
+      const key = new Uint8Array(keyHex.match(/.{1,2}/g).map(x => parseInt(x, 16)));
+      const cryptoKey = await crypto.subtle.importKey("raw", key, "AES-CBC", false, ["decrypt"]);
       const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, encrypted);
 
       if (!audioContext) {
@@ -102,48 +126,14 @@
         source.connect(audioContext.destination);
         source.start(0);
       } catch (err) {
+        document.getElementById("status").innerText = "❌ Audio failed to play.";
         console.error(err);
-        document.getElementById("statusBox").innerText = "❌ Failed to play audio.";
       }
     }
 
     function stopAudio() {
       if (source) source.stop();
     }
-
-    document.getElementById("connectBtn").onclick = async () => {
-      const status = document.getElementById("statusBox");
-      status.innerText = "🔄 Connecting...";
-
-      if (typeof window.ethereum === "undefined") {
-        alert("MetaMask not found");
-        return;
-      }
-
-      try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-        const userAddress = await signer.getAddress();
-
-        status.innerText = `✅ Connected: ${userAddress}`;
-        const contract = new ethers.Contract(contractAddress, abi, provider);
-        const owner = await contract.ownerOf(tokenId);
-
-        if (owner.toLowerCase() === userAddress.toLowerCase()) {
-          document.getElementById("controls").style.display = "block";
-          status.innerText = "✅ You own this NFT — stream unlocked!";
-        } else {
-          status.innerText = "🚫 You do not own this NFT.";
-        }
-      } catch (err) {
-        console.error(err);
-        status.innerText = "❌ Error verifying ownership.";
-      }
-    };
-
-    document.getElementById("playBtn").onclick = playAudio;
-    document.getElementById("stopBtn").onclick = stopAudio;
   </script>
 </body>
 </html>
