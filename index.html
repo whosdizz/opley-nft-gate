@@ -3,83 +3,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PlayOne - Encrypted Music Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PlayOne – NFT Player (iOS Fixed)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <style>
     body {
       margin: 0;
-      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+      background-color: #000;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen;
       color: #fff;
-      font-family: 'Segoe UI', sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 20px;
-      min-height: 100vh;
+      padding: 20px;
     }
+
     .container {
-      max-width: 500px;
       width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
     }
+
     .cover {
       width: 100%;
-      border-radius: 16px;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    h1 {
-      font-size: 2em;
-      margin-bottom: 10px;
-    }
-    p {
-      color: #ccc;
-      margin-bottom: 20px;
-    }
-    button {
-      background: #ff4d4d;
-      border: none;
-      padding: 12px 20px;
-      margin: 10px;
-      font-size: 16px;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #ff1a1a;
-    }
-    #statusBox {
-      margin-top: 20px;
-      padding: 15px;
-      border-radius: 10px;
+      border-radius: 20px;
+      margin: 20px 0;
       background: #222;
-      font-weight: bold;
+      box-shadow: 0 10px 40px rgba(255,255,255,0.1);
+    }
+
+    h1 {
+      font-size: 1.8em;
+      font-weight: 700;
+      margin: 10px 0;
+    }
+
+    p {
+      font-size: 1em;
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+
+    .button {
+      padding: 14px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      margin: 10px 0;
+      width: 90%;
+      cursor: pointer;
+    }
+
+    .button:active {
+      background: #0051c6;
+    }
+
+    #statusBox {
+      background: #1c1c1e;
+      padding: 14px;
+      border-radius: 12px;
+      margin-top: 10px;
+      width: 100%;
+      font-size: 15px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" alt="Cover Art" />
+    <img class="cover" src="https://ipfs.io/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" alt="Cover Art" />
     <h1>🎵 FCK</h1>
-    <p>by WHOSDIZZ – Streamable only by NFT holders</p>
-    <button id="connectBtn">Connect Wallet</button>
+    <p>by WHOSDIZZ – Unlock stream with your NFT</p>
+    <button id="connectBtn" class="button">Connect Wallet</button>
     <div id="statusBox">🔌 Not connected</div>
-    <div id="controls" style="display:none;">
-      <button id="playBtn">▶️ Play Track</button>
-      <button id="stopBtn">⏹️ Stop</button>
+    <div id="controls" style="display:none; width: 100%;">
+      <button id="playBtn" class="button">▶️ Play</button>
+      <button id="stopBtn" class="button">⏹️ Stop</button>
     </div>
   </div>
 
   <script>
     const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
     const tokenId = 4;
-    const ipfsUrl = "https://gateway.pinata.cloud/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
+    const ipfsUrl = "https://ipfs.io/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
     const keyHex = "1b8cf264e4a6d22336ec87b8066abeb03173a5365e6c68189a16977f0f48a470";
     const ivHex = "eb91fa36b84e15201d65c7e1b87cf123";
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
-    let audioContext, source;
+    let audioContext = null, source = null;
 
     async function decryptAudioBuffer() {
       const response = await fetch(ipfsUrl);
@@ -89,16 +104,21 @@
       const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
       const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
       const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, encrypted);
-      audioContext = new AudioContext();
+      if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
       return await audioContext.decodeAudioData(decrypted);
     }
 
     async function playAudio() {
-      const audioBuffer = await decryptAudioBuffer();
-      source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
-      source.start(0);
+      try {
+        const audioBuffer = await decryptAudioBuffer();
+        source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        source.start(0);
+      } catch (err) {
+        document.getElementById("statusBox").innerText = "❌ Failed to play audio.";
+        console.error(err);
+      }
     }
 
     function stopAudio() {
@@ -125,9 +145,9 @@
 
         if (owner.toLowerCase() === userAddress.toLowerCase()) {
           document.getElementById("controls").style.display = "block";
-          status.innerText = "✅ You own this NFT — access granted!";
+          status.innerText = "✅ You own this NFT — stream unlocked!";
         } else {
-          status.innerText = "🚫 You do not own this NFT — access denied.";
+          status.innerText = "🚫 You do not own this NFT.";
         }
       } catch (err) {
         console.error(err);
