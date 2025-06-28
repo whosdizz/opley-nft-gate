@@ -3,9 +3,8 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>PlayOne – NFT Stream</title>
+  <title>PlayOne – NFT Stream (MetaMask Mobile)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     body {
@@ -51,7 +50,7 @@
     <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" />
     <h1>🎵 FCK – WHOSDIZZ</h1>
     <p>NFT Required to Unlock</p>
-    <button onclick="connectWallet()">Connect Wallet</button>
+    <button onclick="connectWallet()">Connect with MetaMask</button>
     <div id="status">🔌 Not connected</div>
     <div id="controls" style="display:none;">
       <button onclick="playAudio()">▶️ Play</button>
@@ -69,17 +68,19 @@
     let provider, signer, audioContext, source;
 
     async function connectWallet() {
-      try {
-        const wcProvider = new WalletConnectProvider.default({
-          rpc: {
-            11155111: "https://rpc.sepolia.org"
-          },
-          chainId: 11155111,
-          qrcode: true
-        });
+      if (typeof window.ethereum === "undefined") {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          window.location.href = "https://metamask.app.link/dapp/" + window.location.hostname;
+        } else {
+          alert("MetaMask not detected. Please install it.");
+        }
+        return;
+      }
 
-        await wcProvider.enable();
-        provider = new ethers.providers.Web3Provider(wcProvider);
+      try {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
         signer = provider.getSigner();
         const address = await signer.getAddress();
 
