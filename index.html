@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>PlayOne – NFT Stream (MetaMask Mobile)</title>
+  <title>PlayOne – MetaMask Only</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
@@ -25,7 +25,7 @@
     button {
       padding: 14px 28px;
       font-size: 16px;
-      background: #00aaff;
+      background: #ff4f00;
       color: white;
       border: none;
       border-radius: 8px;
@@ -49,7 +49,7 @@
   <div class="container">
     <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" />
     <h1>🎵 FCK – WHOSDIZZ</h1>
-    <p>NFT Required to Unlock</p>
+    <p>Exclusive NFT Audio Stream</p>
     <button onclick="connectWallet()">Connect with MetaMask</button>
     <div id="status">🔌 Not connected</div>
     <div id="controls" style="display:none;">
@@ -69,12 +69,7 @@
 
     async function connectWallet() {
       if (typeof window.ethereum === "undefined") {
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (isMobile) {
-          window.location.href = "https://metamask.app.link/dapp/" + window.location.host + window.location.pathname;
-        } else {
-          alert("MetaMask not detected. Please install it.");
-        }
+        window.location.href = "https://metamask.app.link/dapp/" + window.location.host + window.location.pathname;
         return;
       }
 
