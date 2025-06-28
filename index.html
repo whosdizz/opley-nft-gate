@@ -1,51 +1,35 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PlayOne – NFT Player (iOS Style)</title>
+  <title>PlayOne – NFT Player (Fixed)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <style>
     body {
       margin: 0;
       background-color: #000;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
       color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 20px;
     }
-
     .container {
-      width: 100%;
       max-width: 400px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      width: 100%;
       text-align: center;
     }
-
     .cover {
       width: 100%;
       border-radius: 20px;
       margin: 20px 0;
+      background: #222;
       box-shadow: 0 10px 40px rgba(255,255,255,0.1);
     }
-
-    h1 {
-      font-size: 1.8em;
-      font-weight: 700;
-      margin: 10px 0;
-    }
-
-    p {
-      font-size: 1em;
-      color: #aaa;
-      margin-bottom: 20px;
-    }
-
+    h1 { font-size: 1.8em; font-weight: 700; margin: 10px 0; }
+    p { font-size: 1em; color: #aaa; margin-bottom: 20px; }
     .button {
       padding: 14px 28px;
       font-size: 16px;
@@ -58,11 +42,7 @@
       width: 90%;
       cursor: pointer;
     }
-
-    .button:active {
-      background: #0051c6;
-    }
-
+    .button:active { background: #0051c6; }
     #statusBox {
       background: #1c1c1e;
       padding: 14px;
@@ -75,12 +55,12 @@
 </head>
 <body>
   <div class="container">
-    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" alt="Cover Art" />
+    <img class="cover" src="https://cloudflare-ipfs.com/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" alt="Cover Art" />
     <h1>🎵 FCK</h1>
-    <p>by WHOSDIZZ – Unlock stream with your NFT</p>
+    <p>by WHOSDIZZ – NFT Holders Only</p>
     <button id="connectBtn" class="button">Connect Wallet</button>
     <div id="statusBox">🔌 Not connected</div>
-    <div id="controls" style="display:none; width: 100%;">
+    <div id="controls" style="display:none;">
       <button id="playBtn" class="button">▶️ Play</button>
       <button id="stopBtn" class="button">⏹️ Stop</button>
     </div>
@@ -89,7 +69,7 @@
   <script>
     const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
     const tokenId = 4;
-    const ipfsUrl = "https://gateway.pinata.cloud/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
+    const ipfsUrl = "https://cloudflare-ipfs.com/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
     const keyHex = "1b8cf264e4a6d22336ec87b8066abeb03173a5365e6c68189a16977f0f48a470";
     const ivHex = "eb91fa36b84e15201d65c7e1b87cf123";
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
@@ -97,22 +77,34 @@
 
     async function decryptAudioBuffer() {
       const response = await fetch(ipfsUrl);
+      if (!response.ok) throw new Error("Failed to fetch audio file");
+
       const buffer = await response.arrayBuffer();
       const encrypted = buffer.slice(16);
       const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
       const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
       const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
       const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, encrypted);
-      audioContext = new AudioContext();
+
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        await audioContext.resume();
+      }
+
       return await audioContext.decodeAudioData(decrypted);
     }
 
     async function playAudio() {
-      const audioBuffer = await decryptAudioBuffer();
-      source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
-      source.start(0);
+      try {
+        const audioBuffer = await decryptAudioBuffer();
+        source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        source.start(0);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("statusBox").innerText = "❌ Failed to play audio.";
+      }
     }
 
     function stopAudio() {
@@ -122,6 +114,7 @@
     document.getElementById("connectBtn").onclick = async () => {
       const status = document.getElementById("statusBox");
       status.innerText = "🔄 Connecting...";
+
       if (typeof window.ethereum === "undefined") {
         alert("MetaMask not found");
         return;
@@ -132,8 +125,8 @@
         await provider.send("eth_requestAccounts", []);
         const signer = provider.getSigner();
         const userAddress = await signer.getAddress();
-        status.innerText = `✅ Connected: ${userAddress}`;
 
+        status.innerText = `✅ Connected: ${userAddress}`;
         const contract = new ethers.Contract(contractAddress, abi, provider);
         const owner = await contract.ownerOf(tokenId);
 
