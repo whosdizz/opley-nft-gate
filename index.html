@@ -71,7 +71,7 @@
       if (typeof window.ethereum === "undefined") {
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (isMobile) {
-          window.location.href = "https://metamask.app.link/dapp/" + window.location.hostname;
+          window.location.href = "https://metamask.app.link/dapp/" + window.location.host + window.location.pathname;
         } else {
           alert("MetaMask not detected. Please install it.");
         }
