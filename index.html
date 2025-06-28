@@ -32,9 +32,7 @@
       margin: 15px;
     }
     audio {
-      margin-top: 20px;
-      width: 100%;
-      max-width: 300px;
+      display: none;
     }
     #status {
       margin-top: 20px;
@@ -51,7 +49,8 @@
   <button onclick="connectWallet()">🔌 Connect Wallet</button>
   <div id="status"></div>
   <div id="player" style="display:none;">
-    <audio id="audioPlayer" controls></audio>
+    <audio id="audioPlayer"></audio>
+    <button id="playBtn" onclick="playAudio()" style="display:none;">▶️ Play Song</button>
   </div>
 
   <script>
@@ -59,10 +58,16 @@
     const abi = [
       "function balanceOf(address owner) external view returns (uint256)"
     ];
-    const audioURL_desktop = "https://gateway.pinata.cloud/ipfs/bafybeiegqnz3tjtk5sq4jldtispzzugdc7l5b62pmg5k5gm3g6zlcapqge";
+    const audioURL_desktop = "https://ipfs.io/ipfs/bafybeiegqnz3tjtk5sq4jldtispzzugdc7l5b62pmg5k5gm3g6zlcapqge";
     const audioURL_mobile = "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u";
 
     async function connectWallet() {
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile && (!window.ethereum || !window.ethereum.isMetaMask)) {
+        window.location.href = "https://metamask.app.link/dapp/whosdizz.github.io/playone-nft-gate/";
+        return;
+      }
+
       if (!window.ethereum) {
         alert("Please install MetaMask.");
         return;
@@ -80,9 +85,9 @@
         document.getElementById("status").innerText = "✅ Access granted. Enjoy the track!";
         document.getElementById("player").style.display = "block";
 
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (isMobile) {
           document.getElementById("audioPlayer").src = audioURL_mobile;
+          document.getElementById("playBtn").style.display = "inline-block";
         } else {
           document.getElementById("status").innerText += "\\n🔐 Decrypting audio...";
           fetch(audioURL_desktop)
@@ -91,6 +96,7 @@
             .then(blobUrl => {
               document.getElementById("audioPlayer").src = blobUrl;
               document.getElementById("status").innerText = "✅ Decrypted and ready!";
+              document.getElementById("playBtn").style.display = "inline-block";
             })
             .catch(err => {
               console.error(err);
@@ -108,13 +114,13 @@
 
       const key = await crypto.subtle.importKey(
         "raw",
-        new Uint8Array(keyHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16))),
+        new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16))),
         { name: "AES-CBC" },
         false,
         ["decrypt"]
       );
 
-      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
 
       const decrypted = await crypto.subtle.decrypt(
         { name: "AES-CBC", iv },
@@ -124,6 +130,10 @@
 
       const blob = new Blob([decrypted], { type: "audio/mpeg" });
       return URL.createObjectURL(blob);
+    }
+
+    function playAudio() {
+      document.getElementById("audioPlayer").play();
     }
   </script>
 </body>
