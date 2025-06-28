@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PlayOne – NFT Player (iOS Fixed)</title>
+  <title>PlayOne – NFT Player (iOS Style)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
   <style>
     body {
@@ -31,7 +31,6 @@
       width: 100%;
       border-radius: 20px;
       margin: 20px 0;
-      background: #222;
       box-shadow: 0 10px 40px rgba(255,255,255,0.1);
     }
 
@@ -76,7 +75,7 @@
 </head>
 <body>
   <div class="container">
-    <img class="cover" src="https://ipfs.io/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" alt="Cover Art" />
+    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifoclz74j7553k3fqznlpynsunxam3httl5agi5wvz4q2zyqfqtvi" alt="Cover Art" />
     <h1>🎵 FCK</h1>
     <p>by WHOSDIZZ – Unlock stream with your NFT</p>
     <button id="connectBtn" class="button">Connect Wallet</button>
@@ -90,11 +89,11 @@
   <script>
     const contractAddress = "0x98B393Bbde720013287F5d409EE518933AB8a5ad";
     const tokenId = 4;
-    const ipfsUrl = "https://ipfs.io/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
+    const ipfsUrl = "https://gateway.pinata.cloud/ipfs/bafybeihutwzq4zvocxkr2vyc72z6clmuffk7goojlpzy56gi4nfbwq4yxe";
     const keyHex = "1b8cf264e4a6d22336ec87b8066abeb03173a5365e6c68189a16977f0f48a470";
     const ivHex = "eb91fa36b84e15201d65c7e1b87cf123";
     const abi = ["function ownerOf(uint256 tokenId) view returns (address)"];
-    let audioContext = null, source = null;
+    let audioContext, source;
 
     async function decryptAudioBuffer() {
       const response = await fetch(ipfsUrl);
@@ -104,21 +103,16 @@
       const keyBytes = new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
       const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, "AES-CBC", false, ["decrypt"]);
       const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, encrypted);
-      if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContext = new AudioContext();
       return await audioContext.decodeAudioData(decrypted);
     }
 
     async function playAudio() {
-      try {
-        const audioBuffer = await decryptAudioBuffer();
-        source = audioContext.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(audioContext.destination);
-        source.start(0);
-      } catch (err) {
-        document.getElementById("statusBox").innerText = "❌ Failed to play audio.";
-        console.error(err);
-      }
+      const audioBuffer = await decryptAudioBuffer();
+      source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+      source.start(0);
     }
 
     function stopAudio() {
