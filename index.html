@@ -64,7 +64,7 @@
       "function balanceOf(address owner) external view returns (uint256)"
     ];
     const audioURL_desktop = "https://gateway.pinata.cloud/ipfs/bafybeiegqnz3tjtk5sq4jldtispzzugdc7l5b62pmg5k5gm3g6zlcapqge";
-    const audioURL_mobile = "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u";
+    const encoded_mobile = "aHR0cHM6Ly9nYXRld2F5LnBpbmF0YS5jbG91ZC9pcGZzL2JhZnliZWlnY2NhZGEyc3hhNWZjeXgzMjNlYjZ5eW5lYmZmbmZ3dDRyaWp5enFiZmZrdnZkd2hpM3U=";
 
     async function connectWallet() {
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -95,7 +95,8 @@
         const volumeSlider = document.getElementById("volumeSlider");
 
         if (isMobile) {
-          document.getElementById("audioPlayer").src = audioURL_mobile;
+          const decoded = atob(encoded_mobile);
+          document.getElementById("audioPlayer").src = decoded;
           playBtn.style.display = stopBtn.style.display = volumeSlider.style.display = "inline-block";
         } else {
           document.getElementById("status").innerText += "\\n🔐 Decrypting audio...";
