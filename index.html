@@ -25,14 +25,15 @@
       background-color: #ff4f00;
       color: #fff;
       border: none;
-      padding: 14px 28px;
-      font-size: 18px;
+      padding: 12px 24px;
+      font-size: 16px;
       border-radius: 10px;
       cursor: pointer;
-      margin: 15px;
+      margin: 10px 5px;
     }
-    audio {
-      display: none;
+    #volumeSlider {
+      width: 150px;
+      margin-top: 10px;
     }
     #status {
       margin-top: 20px;
@@ -50,7 +51,11 @@
   <div id="status"></div>
   <div id="player" style="display:none;">
     <audio id="audioPlayer"></audio>
-    <button id="playBtn" onclick="playAudio()" style="display:none;">▶️ Play Song</button>
+    <div>
+      <button id="playBtn" onclick="playAudio()" style="display:none;">▶️ Play</button>
+      <button id="stopBtn" onclick="stopAudio()" style="display:none;">⏹ Stop</button>
+    </div>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" style="display:none;" />
   </div>
 
   <script>
@@ -85,9 +90,13 @@
         document.getElementById("status").innerText = "✅ Access granted. Enjoy the track!";
         document.getElementById("player").style.display = "block";
 
+        const playBtn = document.getElementById("playBtn");
+        const stopBtn = document.getElementById("stopBtn");
+        const volumeSlider = document.getElementById("volumeSlider");
+
         if (isMobile) {
           document.getElementById("audioPlayer").src = audioURL_mobile;
-          document.getElementById("playBtn").style.display = "inline-block";
+          playBtn.style.display = stopBtn.style.display = volumeSlider.style.display = "inline-block";
         } else {
           document.getElementById("status").innerText += "\\n🔐 Decrypting audio...";
           fetch(audioURL_desktop)
@@ -96,7 +105,7 @@
             .then(blobUrl => {
               document.getElementById("audioPlayer").src = blobUrl;
               document.getElementById("status").innerText = "✅ Decrypted and ready!";
-              document.getElementById("playBtn").style.display = "inline-block";
+              playBtn.style.display = stopBtn.style.display = volumeSlider.style.display = "inline-block";
             })
             .catch(err => {
               console.error(err);
@@ -133,8 +142,20 @@
     }
 
     function playAudio() {
-      document.getElementById("audioPlayer").play();
+      const audio = document.getElementById("audioPlayer");
+      audio.play();
     }
+
+    function stopAudio() {
+      const audio = document.getElementById("audioPlayer");
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    document.getElementById("volumeSlider").addEventListener("input", function() {
+      const audio = document.getElementById("audioPlayer");
+      audio.volume = parseFloat(this.value);
+    });
   </script>
 </body>
 </html>
