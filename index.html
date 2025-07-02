@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎧 OPLEY NFT Music Player</title>
+  <title>🎧 OPLEY: Premium Music Unlock</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
@@ -43,16 +43,16 @@
   </style>
 </head>
 <body>
-  <h1>🎧 OPLEY Player</h1>
-  <p>Connect your wallet to unlock exclusive music drops</p>
+  <h1>🎧 OPLEY: Where Music Is Premium Again</h1>
+  <p>Connect your account to unlock this exclusive song.</p>
   <img class="art" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
   <br>
-  <button onclick="connectWallet()">🔌 Connect Wallet</button>
+  <button onclick="connectWallet()">🔓 Unlock Access</button>
   <div id="status"></div>
   <div id="player" style="display:none;">
     <audio id="audioPlayer"></audio>
     <div>
-      <button id="playBtn" onclick="playAudio()" style="display:none;">▶️ Play</button>
+      <button id="playBtn" onclick="playAudio()" style="display:none;">▶️ Play Song</button>
       <button id="stopBtn" onclick="stopAudio()" style="display:none;">⏹ Stop</button>
     </div>
     <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" style="display:none;" />
@@ -74,7 +74,7 @@
       }
 
       if (!window.ethereum) {
-        alert("Please install MetaMask.");
+        alert("Please install MetaMask to unlock this track.");
         return;
       }
 
@@ -87,7 +87,7 @@
       const balance = await contract.balanceOf(address);
 
       if (balance.toNumber() > 0) {
-        document.getElementById("status").innerText = "✅ Access granted. Welcome to OPLEY.";
+        document.getElementById("status").innerText = "✅ You've unlocked this track. Enjoy!";
         document.getElementById("player").style.display = "block";
 
         const playBtn = document.getElementById("playBtn");
@@ -99,22 +99,22 @@
           document.getElementById("audioPlayer").src = decoded;
           playBtn.style.display = stopBtn.style.display = volumeSlider.style.display = "inline-block";
         } else {
-          document.getElementById("status").innerText += "\n🔐 Decrypting audio...";
+          document.getElementById("status").innerText += "\n🔐 Preparing your premium playback...";
           fetch(audioURL_desktop)
             .then(response => response.arrayBuffer())
             .then(encrypted => decryptAudioBuffer(encrypted))
             .then(blobUrl => {
               document.getElementById("audioPlayer").src = blobUrl;
-              document.getElementById("status").innerText = "✅ Decrypted and ready!";
+              document.getElementById("status").innerText = "✅ Ready to play!";
               playBtn.style.display = stopBtn.style.display = volumeSlider.style.display = "inline-block";
             })
             .catch(err => {
               console.error(err);
-              document.getElementById("status").innerText = "❌ Error decrypting audio.";
+              document.getElementById("status").innerText = "❌ Error unlocking this song.";
             });
         }
       } else {
-        document.getElementById("status").innerText = "❌ You don't own this NFT. Mint it to unlock the drop.";
+        document.getElementById("status").innerText = "❌ You haven’t unlocked this track yet.";
       }
     }
 
