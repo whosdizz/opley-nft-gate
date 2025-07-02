@@ -1,16 +1,15 @@
+
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎶 Unlock SONG1 – WHOSDIZZ</title>
+  <title>🔓 OPLEY – Unlock Drop</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #000;
+      background: #0c0c0c;
       color: #fff;
+      font-family: sans-serif;
       text-align: center;
       padding: 40px;
     }
@@ -29,7 +28,7 @@
       max-width: 300px;
       border-radius: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 0 30px rgba(255, 79, 0, 0.4);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
     }
     #status {
       margin-top: 20px;
@@ -38,37 +37,53 @@
   </style>
 </head>
 <body>
-  <h1 style="font-size: 2.5em;">🔓 Unlock <em>SONG1</em></h1>
-  <p style="font-size: 1.2em;">🎧 Get exclusive access to WHOSDIZZ's new drop.</p>
+  <h1>🔥 Unlock Exclusive Track</h1>
+  <p style="font-size: 1.1em;">Drop: <strong>SONG1 – WHOSDIZZ</strong></p>
   <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
   <br>
-  <button onclick="unlock()">🔓 Unlock for $0</button>
+  <button id="unlockBtn" onclick="unlock()">🔓 Unlock for $0</button>
   <div id="status"></div>
 
   <script>
+    const userId = localStorage.getItem("userId");
+
+    async function checkAccess() {
+      const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId })
+      });
+      const data = await res.json();
+
+      if (data.alreadyMinted) {
+        document.getElementById("status").innerText = "✅ You already unlocked this song.";
+        document.getElementById("unlockBtn").innerText = "🎧 Play Now";
+        document.getElementById("unlockBtn").onclick = () => window.location.href = "step3.html";
+      }
+    }
+
     async function unlock() {
       try {
-        document.getElementById("status").innerText = "⏳ Unlocking your track...";
-
-        const response = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
-          method: "POST"
+        document.getElementById("status").innerText = "⏳ Unlocking...";
+        const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId })
         });
+        const data = await res.json();
 
-        const result = await response.json();
-
-        if (response.ok) {
-          document.getElementById("status").innerText = "✅ Unlocked! Redirecting to your player...";
-          setTimeout(() => {
-            window.location.href = "step3.html";
-          }, 1500);
+        if (data.success) {
+          window.location.href = "step3.html";
         } else {
-          document.getElementById("status").innerText = "❌ Unlock failed: " + (result.error || "Unknown error.");
+          document.getElementById("status").innerText = "❌ Unlock failed.";
         }
       } catch (err) {
         console.error(err);
-        document.getElementById("status").innerText = "❌ Something went wrong.";
+        document.getElementById("status").innerText = "❌ Error occurred during unlock.";
       }
     }
+
+    checkAccess();
   </script>
 </body>
 </html>
