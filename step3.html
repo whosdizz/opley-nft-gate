@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>🎧 OPLEY Player</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     body {
       margin: 0;
@@ -44,12 +43,11 @@
 </head>
 <body>
   <h1>🎧 Now Playing on OPLEY</h1>
-  <p>Enjoy your unlocked track</p>
+  <p>This track has been unlocked and added to your vault.</p>
   <img class="art" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
 
-  <div id="status">🔒 Verifying access...</div>
-  <div id="player" style="display:none;">
-    <audio id="audioPlayer" controls style="display:none;"></audio>
+  <div id="player">
+    <audio id="audioPlayer" style="display:none;"></audio>
     <div>
       <button onclick="playAudio()">▶️ Play</button>
       <button onclick="stopAudio()">⏹ Stop</button>
@@ -58,37 +56,12 @@
   </div>
 
   <script>
-    const contractAddress = "0x54578D2f2B5B9F8d50CFE2fa1D6a02fa6Ef5c3BB";
-    const abi = [ "function balanceOf(address owner) view returns (uint256)" ];
     const audioURL = "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u";
 
-    async function verifyAccess() {
-      try {
-        if (!window.ethereum) {
-          document.getElementById("status").innerText = "🦊 Please install MetaMask.";
-          return;
-        }
-
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const signer = provider.getSigner();
-        const address = await signer.getAddress();
-
-        const contract = new ethers.Contract(contractAddress, abi, provider);
-        const balance = await contract.balanceOf(address);
-
-        if (balance.toNumber() > 0) {
-          document.getElementById("status").innerText = "✅ Access granted. Ready to play.";
-          document.getElementById("audioPlayer").src = audioURL;
-          document.getElementById("player").style.display = "block";
-        } else {
-          document.getElementById("status").innerText = "❌ You don't own this unlock.";
-        }
-      } catch (err) {
-        console.error(err);
-        document.getElementById("status").innerText = "⚠️ Error verifying access.";
-      }
-    }
+    window.onload = function () {
+      const audio = document.getElementById("audioPlayer");
+      audio.src = audioURL;
+    };
 
     function playAudio() {
       const audio = document.getElementById("audioPlayer");
@@ -104,8 +77,6 @@
     document.getElementById("volumeSlider").addEventListener("input", function () {
       document.getElementById("audioPlayer").volume = parseFloat(this.value);
     });
-
-    verifyAccess();
   </script>
 </body>
 </html>
