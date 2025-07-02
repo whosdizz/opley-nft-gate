@@ -2,31 +2,32 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎧 Unlock SONG1 – WHOSDIZZ</title>
+  <title>🎶 OPLEY – Unlock Song</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background: #0c0c0c;
-      color: #fff;
       font-family: sans-serif;
+      background: #000;
+      color: #fff;
       text-align: center;
       padding: 40px;
     }
-    img.cover {
-      width: 100%;
-      max-width: 300px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-    }
     button {
-      background: #ff4f00;
-      color: white;
+      background-color: #ff4f00;
+      color: #fff;
       border: none;
       padding: 14px 28px;
       font-size: 18px;
       border-radius: 10px;
       cursor: pointer;
-      margin-top: 20px;
+      margin: 20px auto;
+      display: block;
+    }
+    img.cover {
+      width: 90%;
+      max-width: 300px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(255, 79, 0, 0.4);
     }
     #status {
       margin-top: 20px;
@@ -35,64 +36,67 @@
   </style>
 </head>
 <body>
-  <h1>🎧 Unlock SONG1</h1>
-  <p>By WHOSDIZZ – Limited Drop</p>
+  <h1>🔓 Unlock "SONG1"</h1>
   <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
-  <div id="status">Checking access...</div>
-  <button id="unlockBtn" style="display:none;" onclick="unlock()">🔓 Unlock This Drop</button>
-  <button id="playBtn" style="display:none;" onclick="goToPlayer()">▶️ Play Your Music</button>
+  <p style="font-size: 1.1em;">You discovered a drop by WHOSDIZZ. Tap to unlock.</p>
+
+  <button id="unlockBtn" onclick="unlock()" style="display: none;">🪙 Unlock for $0</button>
+  <button id="playBtn" onclick="goToPlayer()" style="display: none;">▶️ Play Your Music</button>
+  <div id="status"></div>
 
   <script>
-    const phone = localStorage.getItem('phone');
+    const API_BASE = "https://opley-minting-api.vercel.app/api";
+    const tokenURI = "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74";
+    const drop = "SONG1";
+    const phone = localStorage.getItem("phone");
+
     if (!phone) {
-      document.getElementById("status").innerText = "No phone number found. Please start over.";
-      document.getElementById("unlockBtn").style.display = "none";
+      document.getElementById("status").innerText = "⚠️ Phone not found. Please start from Step 1.";
     } else {
-      fetch("https://opley-minting-api.vercel.app/api/check-access", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ phone })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.token_id) {
-          document.getElementById("status").innerText = "✅ Already Unlocked!";
-          document.getElementById("playBtn").style.display = "inline-block";
-        } else {
-          document.getElementById("status").innerText = "🔓 Ready to Unlock";
-          document.getElementById("unlockBtn").style.display = "inline-block";
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        document.getElementById("status").innerText = "Error checking access.";
-      });
+      checkAccess();
     }
 
-    function unlock() {
-      fetch("https://opley-minting-api.vercel.app/api/unlock", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ phone })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.token_id) {
-          document.getElementById("status").innerText = "✅ Unlocked!";
-          document.getElementById("unlockBtn").style.display = "none";
-          document.getElementById("playBtn").style.display = "inline-block";
+    async function checkAccess() {
+      try {
+        const res = await fetch(`${API_BASE}/check-access`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, drop })
+        });
+
+        const result = await res.json();
+        if (res.ok && result.access === true) {
+          document.getElementById("status").innerText = "✅ Already unlocked!";
+          document.getElementById("playBtn").style.display = "block";
         } else {
-          document.getElementById("status").innerText = "❌ Unlock failed.";
+          document.getElementById("unlockBtn").style.display = "block";
         }
-      })
-      .catch(err => {
+      } catch (err) {
         console.error(err);
-        document.getElementById("status").innerText = "❌ Error unlocking.";
-      });
+        document.getElementById("status").innerText = "❌ Could not check access.";
+      }
+    }
+
+    async function unlock() {
+      try {
+        const res = await fetch(`${API_BASE}/unlock`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, drop, tokenURI })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          document.getElementById("status").innerText = "✅ Unlocked successfully!";
+          document.getElementById("unlockBtn").style.display = "none";
+          document.getElementById("playBtn").style.display = "block";
+        } else {
+          document.getElementById("status").innerText = `❌ ${result.error || "Failed to unlock"}`;
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "❌ Unlock failed.";
+      }
     }
 
     function goToPlayer() {
