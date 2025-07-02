@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎧 PlayOne NFT Music Player</title>
+  <title>🎧 OPLEY NFT Music Player</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
@@ -43,8 +43,8 @@
   </style>
 </head>
 <body>
-  <h1>🎧 PlayOne Player</h1>
-  <p>Connect your wallet to unlock the song</p>
+  <h1>🎧 OPLEY Player</h1>
+  <p>Connect your wallet to unlock exclusive music drops</p>
   <img class="art" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
   <br>
   <button onclick="connectWallet()">🔌 Connect Wallet</button>
@@ -87,7 +87,7 @@
       const balance = await contract.balanceOf(address);
 
       if (balance.toNumber() > 0) {
-        document.getElementById("status").innerText = "✅ Access granted. Enjoy the track!";
+        document.getElementById("status").innerText = "✅ Access granted. Welcome to OPLEY.";
         document.getElementById("player").style.display = "block";
 
         const playBtn = document.getElementById("playBtn");
@@ -99,7 +99,7 @@
           document.getElementById("audioPlayer").src = decoded;
           playBtn.style.display = stopBtn.style.display = volumeSlider.style.display = "inline-block";
         } else {
-          document.getElementById("status").innerText += "\\n🔐 Decrypting audio...";
+          document.getElementById("status").innerText += "\n🔐 Decrypting audio...";
           fetch(audioURL_desktop)
             .then(response => response.arrayBuffer())
             .then(encrypted => decryptAudioBuffer(encrypted))
@@ -114,7 +114,7 @@
             });
         }
       } else {
-        document.getElementById("status").innerText = "❌ You don't own this NFT.";
+        document.getElementById("status").innerText = "❌ You don't own this NFT. Mint it to unlock the drop.";
       }
     }
 
