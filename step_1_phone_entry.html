@@ -2,66 +2,74 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Enter Phone | OPLEY</title>
+  <title>📱 Enter Your Phone</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
       font-family: sans-serif;
-      background: #0c0c0c;
+      background: #000;
       color: #fff;
       text-align: center;
       padding: 60px 20px;
     }
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 10px;
-    }
-    p {
-      color: #bbb;
-    }
-    input[type="tel"] {
-      padding: 16px;
+    input {
+      padding: 12px;
       font-size: 18px;
-      width: 80%;
-      max-width: 300px;
+      width: 250px;
+      border-radius: 8px;
       border: none;
-      border-radius: 10px;
-      margin-top: 20px;
+      margin-bottom: 20px;
     }
     button {
-      margin-top: 25px;
-      padding: 14px 28px;
+      padding: 12px 24px;
       font-size: 18px;
-      background-color: #ff4f00;
+      background: #ff4f00;
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
     }
     #status {
       margin-top: 20px;
-      color: #ccc;
+      color: #aaa;
     }
   </style>
 </head>
 <body>
-  <h1>📱 Welcome to OPLEY</h1>
-  <p>Enter your phone number to unlock music drops</p>
-  <input id="phoneInput" type="tel" placeholder="+1 (___) ___-____">
-  <br>
+  <h1>🔓 Unlock Exclusive Music</h1>
+  <p>Enter your phone number to continue</p>
+  <input type="tel" id="phone" placeholder="e.g. +1 305 555 1234"><br>
   <button onclick="submitPhone()">Continue</button>
   <div id="status"></div>
 
   <script>
-    function submitPhone() {
-      const phone = document.getElementById("phoneInput").value.trim();
-      if (!phone || phone.length < 6) {
-        document.getElementById("status").innerText = "❌ Please enter a valid phone number.";
+    async function submitPhone() {
+      const phone = document.getElementById("phone").value.trim();
+      if (!phone) {
+        document.getElementById("status").innerText = "⚠️ Please enter a phone number.";
         return;
       }
-      localStorage.setItem("opley_phone", phone);
-      window.location.href = "mint.html"; // replace with your actual mint index file
+
+      try {
+        const res = await fetch("https://opley-minting-api.vercel.app/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem("userPhone", phone);
+          window.location.href = "step2.html";
+        } else {
+          document.getElementById("status").innerText = "❌ " + (data.error || "Something went wrong");
+        }
+      } catch (err) {
+        document.getElementById("status").innerText = "❌ Error connecting to server.";
+        console.error(err);
+      }
     }
   </script>
 </body>
