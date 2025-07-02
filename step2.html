@@ -2,32 +2,34 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎧 Unlock Exclusive Drop</title>
+  <title>🎶 Unlock SONG1 – WHOSDIZZ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     body {
+      margin: 0;
+      font-family: sans-serif;
       background: #000;
       color: #fff;
-      font-family: sans-serif;
       text-align: center;
       padding: 40px;
     }
-    img.cover {
-      width: 90%;
-      max-width: 300px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-      margin-bottom: 20px;
-    }
     button {
       background-color: #ff4f00;
-      color: white;
+      color: #fff;
       border: none;
       padding: 14px 28px;
       font-size: 18px;
       border-radius: 10px;
       cursor: pointer;
       margin-top: 20px;
+    }
+    img.cover {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 30px rgba(255, 79, 0, 0.4);
     }
     #status {
       margin-top: 20px;
@@ -36,35 +38,35 @@
   </style>
 </head>
 <body>
-  <h1>🚀 Unlock “SONG1” by WHOSDIZZ</h1>
-  <p>🎫 Limited to 1000 unlocks – yours awaits</p>
+  <h1 style="font-size: 2.5em;">🔓 Unlock <em>SONG1</em></h1>
+  <p style="font-size: 1.2em;">🎧 Get exclusive access to WHOSDIZZ's new drop.</p>
   <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
   <br>
-  <button onclick="unlock()">🔓 Unlock This Song</button>
+  <button onclick="unlock()">🔓 Unlock for $0</button>
   <div id="status"></div>
 
   <script>
     async function unlock() {
-      const status = document.getElementById("status");
-      status.innerText = "⏳ Unlocking your music...";
-
       try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
+        document.getElementById("status").innerText = "⏳ Unlocking your track...";
+
+        const response = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
           method: "POST"
         });
-        const data = await res.json();
 
-        if (data.success) {
-          status.innerText = "✅ Unlocked! Redirecting to your player...";
+        const result = await response.json();
+
+        if (response.ok) {
+          document.getElementById("status").innerText = "✅ Unlocked! Redirecting to your player...";
           setTimeout(() => {
-            window.location.href = "step3.html"; // change this if needed
-          }, 2000);
+            window.location.href = "step3.html";
+          }, 1500);
         } else {
-          status.innerText = "❌ Unlock failed. Try again.";
+          document.getElementById("status").innerText = "❌ Unlock failed: " + (result.error || "Unknown error.");
         }
       } catch (err) {
         console.error(err);
-        status.innerText = "❌ Network error. Please try again later.";
+        document.getElementById("status").innerText = "❌ Something went wrong.";
       }
     }
   </script>
