@@ -1,88 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>📱 Enter Your Phone</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>📲 Enter Your Phone – OPLEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background: #000;
-      color: #fff;
+      margin: 0;
       font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      padding: 20px;
+      background: #0c0c0c;
+      color: #fff;
       text-align: center;
+      padding: 40px;
     }
     input {
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
+      width: 80%;
+      max-width: 300px;
       margin-top: 20px;
       border-radius: 8px;
       border: none;
-      width: 100%;
-      max-width: 300px;
     }
     button {
-      margin-top: 20px;
-      padding: 12px 24px;
-      font-size: 18px;
+      background-color: #ff4f00;
+      color: #fff;
       border: none;
+      padding: 12px 24px;
+      font-size: 16px;
       border-radius: 10px;
-      background: #ff4f00;
-      color: white;
       cursor: pointer;
+      margin-top: 20px;
     }
     #status {
       margin-top: 20px;
-      color: #aaa;
+      color: #ccc;
     }
   </style>
 </head>
 <body>
-  <h1>🎧 Unlock Your Music</h1>
-  <p>Enter your phone number to continue:</p>
-  <input id="phone" type="tel" placeholder="e.g. 305-555-1234" />
+  <h1>🔓 Unlock Your Music</h1>
+  <p>Enter your phone number to access exclusive drops</p>
+
+  <input type="tel" id="phone" placeholder="Enter your phone number" required />
+  <br>
   <button onclick="submitPhone()">Continue</button>
+
   <div id="status"></div>
 
   <script>
-    const API_BASE = "https://opley-minting-api.vercel.app/api";
-
-    function hashPhone(phone) {
-      return btoa(phone.trim().toLowerCase());
-    }
-
     async function submitPhone() {
-      const phone = document.getElementById("phone").value;
+      const phone = document.getElementById("phone").value.trim();
+
       if (!phone) {
-        document.getElementById("status").innerText = "Please enter a phone number.";
+        alert("Please enter your phone number.");
         return;
       }
 
-      const userId = hashPhone(phone);
-      localStorage.setItem("userId", userId);
-
-      document.getElementById("status").innerText = "⏳ Registering...";
-
       try {
-        const res = await fetch(`${API_BASE}/register`, {
+        const response = await fetch("https://opley-minting-api.vercel.app/api/register", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId })
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ phone })
         });
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        const result = await response.json();
 
-        document.getElementById("status").innerText = "✅ Success! Redirecting...";
-        setTimeout(() => (window.location.href = "step2.html"), 1000);
+        if (!response.ok) {
+          throw new Error(result.error || "Something went wrong.");
+        }
+
+        // Save locally
+        localStorage.setItem("userPhone", phone);
+        document.getElementById("status").innerText = "✅ Access granted. Redirecting...";
+        setTimeout(() => {
+          window.location.href = "step2.html";
+        }, 1000);
       } catch (err) {
         console.error(err);
-        document.getElementById("status").innerText = "❌ Registration failed.";
+        document.getElementById("status").innerText = "❌ " + err.message;
       }
     }
   </script>
