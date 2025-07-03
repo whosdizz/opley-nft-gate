@@ -2,115 +2,83 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎧 OPLEY – Access Your Drop</title>
+  <title>🎧 OPLEY Player</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background: #0c0c0c;
-      color: white;
+      margin: 0;
       font-family: sans-serif;
+      background: #0c0c0c;
+      color: #fff;
       text-align: center;
       padding: 40px;
     }
-    img.cover {
+    img.art {
       width: 90%;
       max-width: 300px;
       border-radius: 20px;
       margin-bottom: 20px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
     }
     button {
       background-color: #ff4f00;
       color: #fff;
       border: none;
-      padding: 14px 28px;
+      padding: 12px 24px;
       font-size: 16px;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      margin-top: 20px;
+      margin: 10px 5px;
     }
-    #loader {
-      display: none;
+    #volumeSlider {
+      width: 150px;
+      margin-top: 10px;
+    }
+    #status {
       margin-top: 20px;
+      color: #ccc;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
-  <h1>🎧 Unlock "SONG1" by WHOSDIZZ</h1>
-  <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art" />
-  <div id="status"></div>
-  <div id="loader">🔄 Processing your unlock...</div>
-  <button id="unlockBtn" onclick="unlock()">🔓 Unlock This Song</button>
-  <button id="playBtn" style="display:none;" onclick="play()">🎧 Play Your Song</button>
+  <h1>🎧 Now Playing on OPLEY</h1>
+  <p>This track has been unlocked and added to your vault.</p>
+  <img class="art" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
+
+  <div id="player">
+    <audio id="audioPlayer" controls style="display:none;"></audio>
+    <audio id="audioPlayer" style="display:none;"></audio>
+    <div>
+      <button onclick="playAudio()">▶️ Play</button>
+      <button onclick="stopAudio()">⏹ Stop</button>
+    </div>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" />
+  </div>
 
   <script>
-    const dropName = "SONG1";
-    const phone = localStorage.getItem("phone");
+    const audioURL = "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u";
 
-    async function checkAccess() {
-      if (!phone) {
-        document.getElementById("status").innerText = "❌ Phone number not found.";
-        return;
-      }
+    window.onload = function () {
+      const audio = document.getElementById("audioPlayer");
+      audio.src = audioURL;
+      audio.style.display = "block";
+    };
 
-      try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop: dropName })
-        });
-
-        const result = await res.json();
-
-        if (result.access === true) {
-          document.getElementById("status").innerText = "✅ You already unlocked this song!";
-          document.getElementById("unlockBtn").style.display = "none";
-          document.getElementById("playBtn").style.display = "inline-block";
-        }
-      } catch (err) {
-        document.getElementById("status").innerText = "⚠️ Error checking access.";
-        console.error(err);
-      }
+    function playAudio() {
+      const audio = document.getElementById("audioPlayer");
+      audio.play();
     }
 
-    async function unlock() {
-      const status = document.getElementById("status");
-      const loader = document.getElementById("loader");
-      const button = document.getElementById("unlockBtn");
-
-      status.innerText = "";
-      loader.style.display = "block";
-      button.disabled = true;
-
-      try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop: dropName })
-        });
-
-        const result = await res.json();
-
-        if (res.ok) {
-          status.innerText = "✅ Unlock successful! You can now play the song.";
-          button.style.display = "none";
-          document.getElementById("playBtn").style.display = "inline-block";
-        } else {
-          status.innerText = `❌ Error: ${result.error || "Unlock failed."}`;
-        }
-      } catch (err) {
-        status.innerText = "❌ Network error.";
-        console.error(err);
-      }
-
-      loader.style.display = "none";
-      button.disabled = false;
+    function stopAudio() {
+      const audio = document.getElementById("audioPlayer");
+      audio.pause();
+      audio.currentTime = 0;
     }
 
-    function play() {
-      window.location.href = "step3_player.html"; // Replace with actual player path
-    }
-
-    checkAccess();
+    document.getElementById("volumeSlider").addEventListener("input", function () {
+      document.getElementById("audioPlayer").volume = parseFloat(this.value);
+    });
   </script>
 </body>
 </html>
