@@ -2,47 +2,89 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎧 OPLEY – Player</title>
+  <title>🎧 OPLEY – Now Playing</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       background: #000;
-      color: white;
+      color: #fff;
       font-family: sans-serif;
       text-align: center;
       padding: 40px;
     }
+
+    h1 {
+      font-size: 2em;
+    }
+
+    p {
+      font-size: 1.1em;
+      margin-bottom: 20px;
+    }
+
     img.cover {
       width: 90%;
       max-width: 300px;
       border-radius: 20px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.2);
+      box-shadow: 0 0 20px rgba(255,255,255,0.15);
+      margin-bottom: 20px;
     }
+
+    .controls {
+      margin-top: 10px;
+    }
+
     button {
       background-color: #ff4f00;
-      color: white;
-      padding: 12px 24px;
-      font-size: 16px;
+      color: #fff;
       border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
       border-radius: 10px;
-      margin-top: 20px;
       cursor: pointer;
     }
-    audio {
-      width: 80%;
-      max-width: 600px;
-      margin-top: 20px;
-      height: 32px;
+
+    input[type="range"] {
+      width: 200px;
+      margin-top: 15px;
     }
   </style>
 </head>
 <body oncontextmenu="return false">
   <h1>🎵 Now Playing</h1>
   <p>Thanks for unlocking! Enjoy your exclusive track.</p>
-  <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Artwork" />
-  <audio controls controlsList="nodownload">
+
+  <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art" />
+
+  <div class="controls">
+    <button onclick="playAudio()">▶️ Play</button>
+    <button onclick="stopAudio()">⏹ Stop</button>
+    <br>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" />
+  </div>
+
+  <audio id="player" preload="auto">
     <source src="https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u" type="audio/mpeg">
     Your browser does not support the audio element.
   </audio>
+
+  <script>
+    const audio = document.getElementById("player");
+    const volumeSlider = document.getElementById("volumeSlider");
+
+    function playAudio() {
+      audio.play();
+    }
+
+    function stopAudio() {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    volumeSlider.addEventListener("input", function () {
+      audio.volume = parseFloat(this.value);
+    });
+  </script>
 </body>
 </html>
