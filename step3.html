@@ -2,83 +2,45 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎧 OPLEY Player</title>
+  <title>🎧 OPLEY – Player</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      margin: 0;
+      background: #000;
+      color: white;
       font-family: sans-serif;
-      background: #0c0c0c;
-      color: #fff;
       text-align: center;
       padding: 40px;
     }
-    img.art {
+    img.cover {
       width: 90%;
       max-width: 300px;
       border-radius: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 20px rgba(255,255,255,0.2);
     }
     button {
       background-color: #ff4f00;
-      color: #fff;
-      border: none;
+      color: white;
       padding: 12px 24px;
       font-size: 16px;
+      border: none;
       border-radius: 10px;
-      cursor: pointer;
-      margin: 10px 5px;
-    }
-    #volumeSlider {
-      width: 150px;
-      margin-top: 10px;
-    }
-    #status {
       margin-top: 20px;
-      color: #ccc;
-      white-space: pre-wrap;
+      cursor: pointer;
+    }
+    audio {
+      width: 100%;
+      margin-top: 20px;
     }
   </style>
 </head>
-<body>
-  <h1>🎧 Now Playing on OPLEY</h1>
-  <p>This track has been unlocked and added to your vault.</p>
-  <img class="art" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
-
-  <div id="player">
-    <audio id="audioPlayer" controls style="display:none;"></audio>
-    <audio id="audioPlayer" style="display:none;"></audio>
-    <div>
-      <button onclick="playAudio()">▶️ Play</button>
-      <button onclick="stopAudio()">⏹ Stop</button>
-    </div>
-    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" />
-  </div>
-
-  <script>
-    const audioURL = "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u";
-
-    window.onload = function () {
-      const audio = document.getElementById("audioPlayer");
-      audio.src = audioURL;
-      audio.style.display = "block";
-    };
-
-    function playAudio() {
-      const audio = document.getElementById("audioPlayer");
-      audio.play();
-    }
-
-    function stopAudio() {
-      const audio = document.getElementById("audioPlayer");
-      audio.pause();
-      audio.currentTime = 0;
-    }
-
-    document.getElementById("volumeSlider").addEventListener("input", function () {
-      document.getElementById("audioPlayer").volume = parseFloat(this.value);
-    });
-  </script>
+<body oncontextmenu="return false">
+  <h1>🎵 Now Playing</h1>
+  <p>Thanks for unlocking! Enjoy your exclusive track.</p>
+  <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Artwork" />
+  <audio controls controlsList="nodownload">
+    <source src="https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
 </body>
 </html>
