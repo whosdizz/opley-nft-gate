@@ -1,107 +1,154 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Unlock Your Drops – OPLEY</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>Unlock Drops – OPLEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       background: #000;
       color: #fff;
       font-family: sans-serif;
       text-align: center;
-      padding: 30px;
+      padding: 40px;
     }
     .drop {
-      margin-bottom: 40px;
+      margin-bottom: 60px;
     }
     img.cover {
-      width: 100%;
-      max-width: 250px;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(255, 79, 0, 0.3);
+      max-width: 300px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(255, 79, 0, 0.5);
+      margin: 10px 0;
     }
     button {
       background-color: #ff4f00;
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 12px 24px;
       font-size: 16px;
       border-radius: 10px;
-      margin-top: 10px;
       cursor: pointer;
+      margin: 5px;
     }
-    #status {
-      margin-top: 10px;
-      color: #ccc;
+    .loader {
+      margin: 10px auto;
+      border: 5px solid #333;
+      border-top: 5px solid #ff4f00;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <h1>🔓 Unlock Your Music</h1>
+  <h1>🔓 Unlock a Drop</h1>
 
-  <div class="drop" id="drop1">
-    <h2>🎵 SONG1 – WHOSDIZZ</h2>
-    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="SONG1 Art" />
-    <div id="status1">Checking access...</div>
-    <button id="unlockBtn1" style="display:none;" onclick="unlock('SONG1', 'ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74')">🔓 Unlock</button>
-    <button id="playBtn1" style="display:none;" onclick="goToPlayer()">▶️ Play</button>
+  <div class="drop" id="song1">
+    <h2>SONG1 by WHOSDIZZ</h2>
+    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="SONG1">
+    <div id="status-song1">Checking access...</div>
+    <div class="loader" id="loader-song1"></div>
+    <button style="display:none;" id="unlockBtn-song1" onclick="unlock('SONG1')">🪙 Unlock</button>
+    <button style="display:none;" id="playBtn-song1" onclick="play('SONG1')">▶️ Play</button>
   </div>
 
-  <div class="drop" id="drop2">
-    <h2>🙏 Grande Eres Señor – LOVE</h2>
-    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq" alt="Grande Art" />
-    <div id="status2">Checking access...</div>
-    <button id="unlockBtn2" style="display:none;" onclick="unlock('GRANDE_ERES_SENOR', 'ipfs://bafkreibvto2gelqwvdgkvrar43462e23wm5rmlcp2mb2caabdb7bwjfupm')">🔓 Unlock</button>
-    <button id="playBtn2" style="display:none;" onclick="goToPlayer()">▶️ Play</button>
+  <div class="drop" id="grande">
+    <h2>Grande Eres Señor by LOVE</h2>
+    <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq" alt="Grande Eres Señor">
+    <div id="status-grande">Checking access...</div>
+    <div class="loader" id="loader-grande"></div>
+    <button style="display:none;" id="unlockBtn-grande" onclick="unlock('GRANDE')">🪙 Unlock</button>
+    <button style="display:none;" id="playBtn-grande" onclick="play('GRANDE')">▶️ Play</button>
   </div>
 
   <script>
-    const phone = localStorage.getItem("phone");
-    if (!phone) location.href = "step_1_phone_entry.html";
+    const tokenURIs = {
+      "SONG1": "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74",
+      "GRANDE": "ipfs://bafkreibvto2gelqwvdgkvrar43462e23wm5rmlcp2mb2caabdb7bwjfupm"
+    };
 
-    async function check(drop, statusId, unlockBtnId, playBtnId) {
+    async function check(drop) {
+      const phone = localStorage.getItem("phone");
+      if (!phone) return window.location.href = "step_1_phone_entry.html";
+
+      const status = document.getElementById(`status-${drop.toLowerCase()}`);
+      const unlockBtn = document.getElementById(`unlockBtn-${drop.toLowerCase()}`);
+      const playBtn = document.getElementById(`playBtn-${drop.toLowerCase()}`);
+
       try {
         const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ phone, drop })
         });
+
         const data = await res.json();
         if (data.hasAccess) {
-          document.getElementById(statusId).innerText = "✅ Already unlocked!";
-          document.getElementById(playBtnId).style.display = "inline-block";
+          status.innerText = "✅ Already unlocked!";
+          playBtn.style.display = "inline-block";
         } else {
-          document.getElementById(statusId).innerText = "🔒 Locked. Unlock to listen.";
-          document.getElementById(unlockBtnId).style.display = "inline-block";
+          status.innerText = "🎶 Ready to unlock!";
+          unlockBtn.style.display = "inline-block";
         }
-      } catch (e) {
-        document.getElementById(statusId).innerText = "⚠️ Error checking access";
-        document.getElementById(unlockBtnId).style.display = "inline-block";
+      } catch (err) {
+        status.innerText = "⚠️ Error checking access.";
+        unlockBtn.style.display = "inline-block";
       }
     }
 
-    async function unlock(drop, tokenURI) {
-      const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, drop, tokenURI })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert("✅ Unlocked!");
-        goToPlayer();
-      } else {
-        alert("❌ Unlock failed.");
+    async function unlock(drop) {
+      const phone = localStorage.getItem("phone");
+      const loader = document.getElementById(`loader-${drop.toLowerCase()}`);
+      const status = document.getElementById(`status-${drop.toLowerCase()}`);
+      const unlockBtn = document.getElementById(`unlockBtn-${drop.toLowerCase()}`);
+      const playBtn = document.getElementById(`playBtn-${drop.toLowerCase()}`);
+
+      status.innerText = "⏳ Unlocking...";
+      loader.style.display = "block";
+      unlockBtn.style.display = "none";
+
+      try {
+        const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone,
+            drop,
+            tokenURI: tokenURIs[drop]
+          })
+        });
+
+        const data = await res.json();
+        loader.style.display = "none";
+
+        if (res.ok) {
+          status.innerText = "✅ Unlocked!";
+          playBtn.style.display = "inline-block";
+        } else {
+          throw new Error(data.error || "Unlock failed");
+        }
+      } catch (err) {
+        console.error(err);
+        status.innerText = "❌ Unlock failed.";
+        unlockBtn.style.display = "inline-block";
+        loader.style.display = "none";
       }
     }
 
-    function goToPlayer() {
-      location.href = "step3.html";
+    function play(drop) {
+      localStorage.setItem("currentDrop", drop);
+      window.location.href = "step3.html";
     }
 
-    check("SONG1", "status1", "unlockBtn1", "playBtn1");
-    check("GRANDE_ERES_SENOR", "status2", "unlockBtn2", "playBtn2");
+    check("SONG1");
+    check("GRANDE");
   </script>
 </body>
 </html>
