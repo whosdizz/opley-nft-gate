@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>🔓 Unlock Drop – OPLEY</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Unlock Drop – OPLEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       background: #000;
@@ -15,8 +15,7 @@
     img.cover {
       max-width: 300px;
       border-radius: 20px;
-      box-shadow: 0 0 30px rgba(255, 79, 0, 0.5);
-      margin-bottom: 20px;
+      box-shadow: 0 0 30px rgba(255, 79, 0, 0.4);
     }
     button {
       background-color: #ff4f00;
@@ -26,122 +25,100 @@
       font-size: 16px;
       border-radius: 10px;
       cursor: pointer;
-      margin-top: 10px;
+      margin-top: 20px;
     }
     #status {
       margin-top: 20px;
       color: #ccc;
-      font-size: 16px;
-      white-space: pre-wrap;
-    }
-    .loader {
-      margin: 20px auto;
-      border: 5px solid #333;
-      border-top: 5px solid #ff4f00;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      display: none;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <h1 id="title">🔓 Unlock Drop</h1>
-  <img id="coverArt" class="cover" src="" alt="Cover Art" />
+  <h1>🔓 Unlock Your Drop</h1>
+  <p id="dropTitle">Loading...</p>
+  <img class="cover" id="coverImage" src="" alt="Cover Art" style="display:none;" />
   <div id="status">Checking access...</div>
-  <div class="loader" id="loader"></div>
-
-  <button id="unlockBtn" style="display:none;" onclick="unlock()">🔓 Unlock for $0</button>
-  <button id="playBtn" style="display:none;" onclick="goToPlayer()">▶️ Play Your Music</button>
+  <button id="unlockBtn" style="display:none;" onclick="unlock()">🪙 Unlock for $0</button>
+  <button id="playBtn" style="display:none;" onclick="goToPlayer()">▶️ Play</button>
 
   <script>
     const drop = new URLSearchParams(window.location.search).get("drop");
-    const phone = localStorage.getItem("phone");
-
-    const dropOptions = {
+    const dropData = {
       "SONG1": {
-        name: "SONG1",
-        artist: "WHOSDIZZ",
-        cover: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
+        title: "SONG1 by WHOSDIZZ",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
         tokenURI: "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74"
       },
-      "GRANDE": {
-        name: "Grande Eres Señor",
-        artist: "LOVE",
-        cover: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
+      "Grande Eres Señor": {
+        title: "Grande Eres Señor by LOVE",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
         tokenURI: "ipfs://bafkreibvto2gelqwvdgkvrar43462e23wm5rmlcp2mb2caabdb7bwjfupm"
       }
     };
 
-    if (!drop || !dropOptions[drop]) {
-      document.getElementById("status").innerText = "❌ Invalid or missing drop.";
-      throw new Error("Invalid or missing drop");
-    }
-
-    if (!phone) {
-      window.location.href = "step_1_phone_entry.html";
-    }
-
-    const { name, artist, cover, tokenURI } = dropOptions[drop];
-    document.getElementById("title").innerText = `🔓 Unlock ${name}`;
-    document.getElementById("coverArt").src = cover;
-
     async function checkAccess() {
+      if (!drop || !dropData[drop]) {
+        document.getElementById("status").innerText = "❌ Invalid or missing drop.";
+        return;
+      }
+
+      const phone = localStorage.getItem("phone");
+      if (!phone) return location.href = "step_1_phone_entry.html";
+
+      const data = dropData[drop];
+      document.getElementById("dropTitle").innerText = data.title;
+      document.getElementById("coverImage").src = data.image;
+      document.getElementById("coverImage").style.display = "block";
+
       try {
         const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ phone, drop })
         });
-        const data = await res.json();
-        if (data.hasAccess) {
-          document.getElementById("status").innerText = "✅ Already Unlocked!";
+
+        const result = await res.json();
+        if (result.accessGranted) {
+          document.getElementById("status").innerText = "✅ You've already unlocked this drop!";
           document.getElementById("playBtn").style.display = "inline-block";
         } else {
           document.getElementById("status").innerText = "🎶 Ready to unlock!";
           document.getElementById("unlockBtn").style.display = "inline-block";
         }
       } catch (err) {
-        console.error("Access check failed", err);
-        document.getElementById("status").innerText = "❌ Error checking access.";
+        document.getElementById("status").innerText = "⚠️ Error checking access.";
       }
     }
 
     async function unlock() {
-      try {
-        document.getElementById("status").innerText = "⏳ Unlocking...";
-        document.getElementById("loader").style.display = "block";
-        document.getElementById("unlockBtn").style.display = "none";
+      const phone = localStorage.getItem("phone");
+      if (!phone) return;
 
+      document.getElementById("status").innerText = "⏳ Unlocking...";
+      document.getElementById("unlockBtn").style.display = "none";
+
+      try {
         const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop, tokenURI })
+          body: JSON.stringify({ phone, drop })
         });
 
-        const data = await res.json();
-        document.getElementById("loader").style.display = "none";
-
-        if (res.ok) {
-          document.getElementById("status").innerText = "✅ Unlocked successfully!";
+        const result = await res.json();
+        if (res.ok && result.tokenId) {
+          document.getElementById("status").innerText = `✅ Drop unlocked!\nToken #${result.tokenId}`;
           document.getElementById("playBtn").style.display = "inline-block";
         } else {
-          throw new Error(data.error || "Unlock failed");
+          throw new Error(result.error || "Unknown unlock error.");
         }
       } catch (err) {
-        console.error("Unlock error", err);
-        document.getElementById("status").innerText = "❌ Unlock failed. Try again.";
+        document.getElementById("status").innerText = "❌ Unlock failed: " + err.message;
         document.getElementById("unlockBtn").style.display = "inline-block";
       }
     }
 
     function goToPlayer() {
-      window.location.href = `step3.html?drop=${drop}`;
+      window.location.href = `step3.html?drop=${encodeURIComponent(drop)}`;
     }
 
     checkAccess();
