@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>OPLEY Encryptor</title>
+  <style>
+    body {
+      background: #0c0c0c;
+      color: #fff;
+      font-family: sans-serif;
+      padding: 40px;
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      background: #ff4f00;
+      color: #fff;
+      cursor: pointer;
+    }
+    .output {
+      margin-top: 20px;
+      word-break: break-all;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔐 OPLEY Encryptor</h1>
+  <p>Select an MP3 file to encrypt</p>
+  <input type="file" id="fileInput" accept=".mp3"><br>
+  <button onclick="encryptFile()">Encrypt</button>
+  <div id="output" class="output"></div>
+
+  <script>
+    async function encryptFile() {
+      const file = document.getElementById("fileInput").files[0];
+      if (!file) return alert("Please select a file.");
+
+      const arrayBuffer = await file.arrayBuffer();
+
+      // Generate AES key and IV
+      const key = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(16));
+
+      const cryptoKey = await crypto.subtle.importKey(
+        "raw",
+        key,
+        { name: "AES-CBC" },
+        false,
+        ["encrypt"]
+      );
+
+      const encrypted = await crypto.subtle.encrypt(
+        { name: "AES-CBC", iv },
+        cryptoKey,
+        arrayBuffer
+      );
+
+      const blob = new Blob([new Uint8Array(encrypted)], { type: "audio/mpeg" });
+      const url = URL.createObjectURL(blob);
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = file.name + ".enc";
+      downloadLink.innerText = "⬇️ Download Encrypted File";
+      downloadLink.style.display = "block";
+      downloadLink.style.marginTop = "20px";
+
+      const keyHex = Array.from(key).map(b => b.toString(16).padStart(2, "0")).join("");
+      const ivHex = Array.from(iv).map(b => b.toString(16).padStart(2, "0")).join("");
+
+      document.getElementById("output").innerHTML = `
+        <strong>Encryption Key (AES):</strong><br>${keyHex}<br><br>
+        <strong>IV (Initialization Vector):</strong><br>${ivHex}<br><br>
+      `;
+      document.getElementById("output").appendChild(downloadLink);
+    }
+  </script>
+</body>
+</html>
