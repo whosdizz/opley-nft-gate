@@ -1,8 +1,8 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>🎧 OPLEY Music Player</title>
+  <title>🎧 Play Drop – OPLEY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -14,8 +14,8 @@
     }
     img.cover {
       max-width: 300px;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(255, 79, 0, 0.3);
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
       margin-bottom: 20px;
     }
     button {
@@ -31,30 +31,32 @@
     #status {
       margin-top: 20px;
       color: #ccc;
-      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <h1>🎧 OPLEY Music Player</h1>
-  <p>Secure Access to Your Unlocked Song</p>
+  <h1>🎧 Your Drop</h1>
+  <p>Play your unlocked track</p>
   <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
 
+  <div id="status">Verifying access...</div>
+
   <div id="player" style="display:none;">
-    <audio id="audioPlayer" controls></audio><br>
-    <button onclick="play()">▶️ Play</button>
-    <button onclick="stop()">⏹ Stop</button>
-    <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+    <audio id="audio" controls style="width:100%; max-width:300px;">
+      <source src="https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
   </div>
 
-  <div id="status">Checking access...</div>
-
   <script>
-    const drop = "SONG1"; // Can be made dynamic later
+    const drop = "SONG1";
+    const phone = localStorage.getItem("phone");
 
     async function checkAccess() {
-      const phone = localStorage.getItem("phone");
-      if (!phone) return location.href = "step_1_phone_entry.html";
+      if (!phone) {
+        document.getElementById("status").innerText = "No phone found. Please start over.";
+        return;
+      }
 
       try {
         const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
@@ -64,33 +66,19 @@
         });
 
         const data = await res.json();
-        if (data.hasAccess) {
+        console.log("🔍 API Response:", data);
+
+        if (res.ok && data.hasAccess) {
           document.getElementById("status").innerText = "✅ Access granted. Enjoy your music!";
           document.getElementById("player").style.display = "block";
-          document.getElementById("audioPlayer").src = "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u"; // Mobile stream link
         } else {
-          document.getElementById("status").innerText = "❌ Access denied. Please unlock this drop first.";
-          setTimeout(() => location.href = "step2.html", 2000);
+          document.getElementById("status").innerText = "⛔ Access denied. Please unlock this drop first.";
         }
       } catch (err) {
-        document.getElementById("status").innerText = "⚠️ Error checking access.";
-        setTimeout(() => location.href = "step2.html", 2000);
+        console.error("❌ Error checking access:", err);
+        document.getElementById("status").innerText = "⚠️ Error verifying access.";
       }
     }
-
-    function play() {
-      document.getElementById("audioPlayer").play();
-    }
-
-    function stop() {
-      const audio = document.getElementById("audioPlayer");
-      audio.pause();
-      audio.currentTime = 0;
-    }
-
-    document.getElementById("volume").addEventListener("input", function() {
-      document.getElementById("audioPlayer").volume = parseFloat(this.value);
-    });
 
     window.onload = checkAccess;
   </script>
