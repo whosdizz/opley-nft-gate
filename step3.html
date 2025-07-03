@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>🎧 Play Drop – OPLEY</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>🎧 OPLEY Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       background: #000;
@@ -12,15 +12,16 @@
       text-align: center;
       padding: 40px;
     }
-    img.cover {
+    img.art {
+      width: 90%;
       max-width: 300px;
       border-radius: 20px;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
       margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
     }
     button {
       background-color: #ff4f00;
-      color: white;
+      color: #fff;
       border: none;
       padding: 12px 24px;
       font-size: 16px;
@@ -28,33 +29,42 @@
       cursor: pointer;
       margin: 10px;
     }
+    #volumeSlider {
+      width: 150px;
+      margin-top: 10px;
+    }
     #status {
       margin-top: 20px;
       color: #ccc;
     }
+    #player {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>🎧 Your Drop</h1>
-  <p>Play your unlocked track</p>
-  <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
+  <h1>🎶 Your Drop</h1>
+  <img class="art" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover" />
 
-  <div id="status">Verifying access...</div>
+  <div id="status">🔍 Verifying access...</div>
 
-  <div id="player" style="display:none;">
-    <audio id="audio" controls style="width:100%; max-width:300px;">
-      <source src="https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u" type="audio/mpeg">
-      Your browser does not support the audio element.
-    </audio>
+  <div id="player">
+    <audio id="audioPlayer" controls style="display:none;"></audio>
+    <div>
+      <button onclick="playAudio()">▶️ Play</button>
+      <button onclick="stopAudio()">⏹ Stop</button>
+    </div>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" />
   </div>
 
   <script>
-    const drop = "SONG1";
-    const phone = localStorage.getItem("phone");
+    const DROP_NAME = "SONG1";
+    const audioURL = "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u";
 
-    async function checkAccess() {
+    async function verifyAccess() {
+      const phone = localStorage.getItem("phone");
       if (!phone) {
-        document.getElementById("status").innerText = "No phone found. Please start over.";
+        document.getElementById("status").innerText = "⚠️ No phone found. Please log in again.";
         return;
       }
 
@@ -62,25 +72,42 @@
         const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop })
+          body: JSON.stringify({ phone, drop: DROP_NAME })
         });
 
         const data = await res.json();
-        console.log("🔍 API Response:", data);
 
-        if (res.ok && data.hasAccess) {
-          document.getElementById("status").innerText = "✅ Access granted. Enjoy your music!";
+        if (data.accessGranted) {
+          document.getElementById("status").innerText = `✅ Access granted! Token #${data.tokenId}`;
+          const audio = document.getElementById("audioPlayer");
+          audio.src = audioURL;
+          audio.style.display = "block";
           document.getElementById("player").style.display = "block";
         } else {
-          document.getElementById("status").innerText = "⛔ Access denied. Please unlock this drop first.";
+          document.getElementById("status").innerText = "❌ Access denied. Please unlock this drop first.";
         }
       } catch (err) {
-        console.error("❌ Error checking access:", err);
+        console.error(err);
         document.getElementById("status").innerText = "⚠️ Error verifying access.";
       }
     }
 
-    window.onload = checkAccess;
+    function playAudio() {
+      document.getElementById("audioPlayer").play();
+    }
+
+    function stopAudio() {
+      const audio = document.getElementById("audioPlayer");
+      audio.pause();
+      audio.currentTime = 0;
+    }
+
+    document.getElementById("volumeSlider").addEventListener("input", function () {
+      const audio = document.getElementById("audioPlayer");
+      audio.volume = parseFloat(this.value);
+    });
+
+    window.onload = verifyAccess;
   </script>
 </body>
 </html>
