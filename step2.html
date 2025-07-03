@@ -2,106 +2,117 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Unlock – SONG1</title>
+  <title>Unlock Drop – OPLEY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      background: #0c0c0c;
-      color: white;
-      font-family: sans-serif;
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: #000;
+      color: #fff;
       text-align: center;
-      padding: 30px;
-    }
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: none;
-      margin: 10px;
-      cursor: pointer;
-      background-color: #ff4f00;
-      color: white;
+      padding: 40px;
     }
     img.cover {
       width: 100%;
       max-width: 300px;
       border-radius: 16px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 20px rgba(255, 79, 0, 0.5);
+      box-shadow: 0 0 20px rgba(255, 79, 0, 0.3);
+    }
+    button {
+      background-color: #ff4f00;
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin: 10px;
     }
     #status {
       margin-top: 20px;
-      font-size: 15px;
+      font-size: 16px;
       color: #ccc;
     }
   </style>
 </head>
 <body>
-
-  <h1>🔓 Unlock <em>SONG1</em></h1>
+  <h1>🔓 Unlock Your Drop</h1>
+  <p>One-time unlock for SONG1 by WHOSDIZZ</p>
   <img class="cover" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
   
   <div id="status">Checking access...</div>
 
-  <button id="unlockButton" onclick="unlock()" style="display:none;">🔓 Unlock This Song</button>
-  <button id="playButton" onclick="goToPlayer()" style="display:none;">▶️ Play Now</button>
+  <button id="unlockBtn" onclick="unlock()" style="display:none;">🪙 Unlock Now</button>
+  <button id="playBtn" onclick="play()" style="display:none;">▶️ Play Your Music</button>
 
   <script>
-    const drop = "SONG1";
-    const userId = localStorage.getItem("userId");
+    const DROP_NAME = "SONG1";
 
-    if (!userId) {
-      alert("No user found. Redirecting...");
-      window.location.href = "step_1_phone_entry.html";
-    }
-
-    fetch("https://opley-minting-api.vercel.app/api/check-access", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, drop })
-    })
-    .then(res => res.json())
-    .then(data => {
-      console.log("Check access:", data);
-      if (data.unlocked) {
-        document.getElementById("status").innerText = "✅ You’ve already unlocked this song.";
-        document.getElementById("playButton").style.display = "inline-block";
-      } else {
-        document.getElementById("status").innerText = "🔓 Unlock this drop to listen.";
-        document.getElementById("unlockButton").style.display = "inline-block";
+    async function checkAccess() {
+      const phone = localStorage.getItem("userPhone");
+      if (!phone) {
+        document.getElementById("status").innerText = "❌ No phone stored. Please go back.";
+        return;
       }
-    })
-    .catch(err => {
-      console.error(err);
-      document.getElementById("status").innerText = "❌ Error checking access.";
-    });
 
-    function unlock() {
-      document.getElementById("status").innerText = "⏳ Unlocking...";
-      fetch("https://opley-minting-api.vercel.app/api/unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, drop })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          document.getElementById("status").innerText = "✅ Unlocked!";
-          document.getElementById("unlockButton").style.display = "none";
-          document.getElementById("playButton").style.display = "inline-block";
+      try {
+        const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, drop: DROP_NAME })
+        });
+
+        const data = await res.json();
+        if (data.access === true) {
+          document.getElementById("status").innerText = "✅ You've already unlocked this song!";
+          document.getElementById("playBtn").style.display = "inline-block";
         } else {
-          document.getElementById("status").innerText = "❌ Unlock failed: " + data.error;
+          document.getElementById("status").innerText = "🔒 This song is locked. Unlock now.";
+          document.getElementById("unlockBtn").style.display = "inline-block";
         }
-      })
-      .catch(err => {
+      } catch (err) {
         console.error(err);
-        document.getElementById("status").innerText = "❌ Unlock error.";
-      });
+        document.getElementById("status").innerText = "⚠️ Error checking access. Try again.";
+        document.getElementById("unlockBtn").style.display = "inline-block";
+      }
     }
 
-    function goToPlayer() {
+    async function unlock() {
+      const phone = localStorage.getItem("userPhone");
+      if (!phone) return;
+
+      document.getElementById("status").innerText = "⏳ Unlocking in progress...";
+      document.getElementById("unlockBtn").disabled = true;
+
+      try {
+        const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, drop: DROP_NAME })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          document.getElementById("status").innerText = "✅ Unlocked!";
+          setTimeout(() => {
+            window.location.href = "step3.html";
+          }, 1000);
+        } else {
+          throw new Error(result.error || "Minting failed");
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").innerText = "❌ Unlock failed: " + err.message;
+        document.getElementById("unlockBtn").disabled = false;
+      }
+    }
+
+    function play() {
       window.location.href = "step3.html";
     }
+
+    window.onload = checkAccess;
   </script>
 </body>
 </html>
