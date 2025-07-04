@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>OPLEY Player</title>
+  <title>OPLEY Player Debug</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body, html {
@@ -131,16 +131,22 @@
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     async function decryptAndPlay(encryptedUrl, keyHex, ivHex) {
-      const response = await fetch(encryptedUrl);
-      const encryptedData = await response.arrayBuffer();
-      const key = await crypto.subtle.importKey("raw", hexToBytes(keyHex), { name: "AES-CBC" }, false, ["decrypt"]);
-      const iv = hexToBytes(ivHex);
-      const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, key, encryptedData);
-      const blob = new Blob([decrypted], { type: "audio/mpeg" });
-      const url = URL.createObjectURL(blob);
-      audio.src = url;
-      audio.play();
-      playPauseBtn.innerText = "⏸️";
+      try {
+        console.log("🔐 Fetching encrypted audio:", encryptedUrl);
+        const response = await fetch(encryptedUrl);
+        const encryptedData = await response.arrayBuffer();
+        const key = await crypto.subtle.importKey("raw", hexToBytes(keyHex), { name: "AES-CBC" }, false, ["decrypt"]);
+        const iv = hexToBytes(ivHex);
+        const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, key, encryptedData);
+        const blob = new Blob([decrypted], { type: "audio/mpeg" });
+        const url = URL.createObjectURL(blob);
+        console.log("🎧 Decrypted audio blob created:", url);
+        audio.src = url;
+        audio.play();
+        playPauseBtn.innerText = "⏸️";
+      } catch (err) {
+        console.error("❌ Decryption/playback failed:", err);
+      }
     }
 
     function hexToBytes(hex) {
@@ -152,12 +158,14 @@
     }
 
     async function startPlayer() {
+      console.log("📥 DROP PARAM:", drop);
       if (!drop || !drops[drop]) {
         alert("Invalid or missing drop.");
         return;
       }
 
       const data = drops[drop];
+      console.log("📦 DROP DATA:", data);
       document.getElementById("trackTitle").innerText = data.title;
       document.getElementById("trackArtist").innerText = data.artist;
       document.getElementById("player").style.backgroundImage = `url('${data.image}')`;
@@ -172,12 +180,15 @@
       });
 
       const access = await accessRes.json();
+      console.log("🔓 ACCESS RESULT:", access);
+
       if (!access.accessGranted) {
         alert("❌ You haven't unlocked this drop.");
         return;
       }
 
       if (isMobile) {
+        console.log("📱 Mobile playback:", data.audioMobile);
         audio.src = data.audioMobile;
         audio.play();
         playPauseBtn.innerText = "⏸️";
@@ -189,6 +200,8 @@
         });
 
         const { key, iv } = await keyRes.json();
+        console.log("🧩 KEY/IV:", key, iv);
+
         if (key && iv) {
           decryptAndPlay(data.audioEncrypted, key, iv);
         } else {
