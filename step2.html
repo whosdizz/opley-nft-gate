@@ -24,7 +24,8 @@
       width: 100%;
       padding-top: 100%;
       border-radius: 20px;
-      background: linear-gradient(135deg, #ff6600, #3a00ff);
+      background-size: cover;
+      background-position: center;
       position: relative;
       margin-bottom: 1rem;
     }
@@ -121,10 +122,12 @@
     const drops = {
       "SONG1": {
         title: "SONG1 – EXCLUSIVE DROP",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
         releaseDate: "2025-07-10T00:00:00Z"
       },
       "Grande Eres Señor": {
         title: "Grande Eres Señor – EXCLUSIVE DROP",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
         releaseDate: "2025-07-10T00:00:00Z"
       }
     };
@@ -145,7 +148,7 @@
       const module = document.createElement("div");
       module.className = "drop-module";
       module.innerHTML = `
-        <div class="drop-preview"></div>
+        <div class="drop-preview" style="background-image: url('${d.image}')"></div>
         <div class="drop-title">${d.title}</div>
         <div class="drop-meta">Release Date: ${release.toDateString()}</div>
         <div class="drop-meta">${countdown}</div>
