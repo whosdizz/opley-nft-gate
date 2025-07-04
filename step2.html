@@ -11,35 +11,99 @@
       font-family: sans-serif;
       text-align: center;
       padding: 40px;
+      margin: 0;
     }
-    img.cover {
-      max-width: 300px;
+    .drop-card {
+      background-color: #111;
       border-radius: 20px;
+      padding: 1rem;
+      margin: 1rem auto;
+      text-align: center;
+      max-width: 340px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+    }
+    .drop-cover {
+      width: 100%;
+      height: 300px;
+      border-radius: 20px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      margin-bottom: 1rem;
       box-shadow: 0 0 30px rgba(255, 79, 0, 0.4);
     }
-    button {
-      background-color: #ff4f00;
-      color: white;
-      border: none;
-      padding: 14px 28px;
-      font-size: 16px;
-      border-radius: 10px;
+    .drop-preview-button {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 0.5rem 1rem;
+      border: 2px solid white;
+      border-radius: 30px;
       cursor: pointer;
-      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    .button {
+      display: block;
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      background-color: #ff4f00;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
     }
     #status {
       margin-top: 20px;
       color: #ccc;
     }
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #000;
+      border-top: 1px solid #444;
+      display: flex;
+      justify-content: space-around;
+      padding: 0.75rem;
+      font-size: 0.9rem;
+      z-index: 20;
+    }
+    .nav button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
+
   <h1>🔓 Unlock Your Drop</h1>
-  <p id="dropTitle">Loading...</p>
-  <img class="cover" id="coverImage" src="" alt="Cover Art" style="display:none;" />
-  <div id="status">Checking access...</div>
-  <button id="unlockBtn" style="display:none;" onclick="unlock()">🪙 Unlock for $0</button>
-  <button id="playBtn" style="display:none;" onclick="goToPlayer()">▶️ Play</button>
+
+  <div class="drop-card">
+    <div id="dropCover" class="drop-cover" style="display:none;">
+      <div class="drop-preview-button" onclick="playPreview()">▶ 15s Preview</div>
+    </div>
+
+    <h2 id="dropTitle">Loading...</h2>
+
+    <div id="status">Checking access...</div>
+
+    <button id="unlockBtn" class="button" style="display:none;" onclick="unlock()">🪙 Unlock for $0</button>
+    <button id="playBtn" class="button" style="display:none;" onclick="goToPlayer()">▶️ Play</button>
+  </div>
+
+  <div class="nav">
+    <button onclick="location.href='step2.html'">🔥 Drops</button>
+    <button onclick="location.href='player.html'">▶ Now Playing</button>
+    <button onclick="location.href='vault.html'">📁 Vault</button>
+    <button onclick="location.href='profile.html'">👤 Profile</button>
+  </div>
 
   <script>
     const drop = new URLSearchParams(window.location.search).get("drop");
@@ -47,14 +111,18 @@
       "SONG1": {
         title: "SONG1 by WHOSDIZZ",
         image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
+        preview: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
         tokenURI: "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74"
       },
       "Grande Eres Señor": {
         title: "Grande Eres Señor by LOVE",
         image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
+        preview: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u", // Replace with correct preview
         tokenURI: "ipfs://bafkreibvto2gelqwvdgkvrar43462e23wm5rmlcp2mb2caabdb7bwjfupm"
       }
     };
+
+    let currentPreview = "";
 
     async function checkAccess() {
       if (!drop || !dropData[drop]) {
@@ -66,9 +134,11 @@
       if (!phone) return location.href = "step_1_phone_entry.html";
 
       const data = dropData[drop];
+      currentPreview = data.preview;
+
       document.getElementById("dropTitle").innerText = data.title;
-      document.getElementById("coverImage").src = data.image;
-      document.getElementById("coverImage").style.display = "block";
+      document.getElementById("dropCover").style.backgroundImage = `url('${data.image}')`;
+      document.getElementById("dropCover").style.display = "block";
 
       try {
         const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
@@ -80,10 +150,10 @@
         const result = await res.json();
         if (result.accessGranted) {
           document.getElementById("status").innerText = "✅ You've already unlocked this drop!";
-          document.getElementById("playBtn").style.display = "inline-block";
+          document.getElementById("playBtn").style.display = "block";
         } else {
           document.getElementById("status").innerText = "🎶 Ready to unlock!";
-          document.getElementById("unlockBtn").style.display = "inline-block";
+          document.getElementById("unlockBtn").style.display = "block";
         }
       } catch (err) {
         document.getElementById("status").innerText = "⚠️ Error checking access.";
@@ -106,14 +176,22 @@
 
         const result = await res.json();
         if (res.ok && result.tokenId) {
-          document.getElementById("status").innerText = `✅ Drop unlocked!\nToken #${result.tokenId}`;
-          document.getElementById("playBtn").style.display = "inline-block";
+          document.getElementById("status").innerText = `✅ Drop unlocked! Token #${result.tokenId}`;
+          document.getElementById("playBtn").style.display = "block";
         } else {
           throw new Error(result.error || "Unknown unlock error.");
         }
       } catch (err) {
         document.getElementById("status").innerText = "❌ Unlock failed: " + err.message;
-        document.getElementById("unlockBtn").style.display = "inline-block";
+        document.getElementById("unlockBtn").style.display = "block";
+      }
+    }
+
+    function playPreview() {
+      if (currentPreview) {
+        const audio = new Audio(currentPreview);
+        audio.currentTime = 0;
+        audio.play();
       }
     }
 
@@ -123,5 +201,6 @@
 
     checkAccess();
   </script>
+
 </body>
 </html>
