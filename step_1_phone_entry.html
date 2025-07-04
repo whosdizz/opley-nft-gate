@@ -2,81 +2,133 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>📱 Unlock with Your Phone</title>
+  <title>OPLEY – Get Exclusive Drops</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      background-color: #0c0c0c;
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0b0b;
       color: #fff;
-      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header {
       text-align: center;
-      padding: 40px;
+      margin-top: 80px;
     }
-    input {
-      padding: 12px;
-      font-size: 18px;
-      border-radius: 10px;
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    p {
+      font-size: 1em;
+      color: #aaa;
+    }
+
+    input[type="tel"] {
+      margin-top: 30px;
+      padding: 16px;
+      font-size: 1em;
       border: none;
+      border-radius: 12px;
       width: 80%;
-      max-width: 300px;
-      margin-bottom: 20px;
+      max-width: 320px;
+      text-align: center;
+      background: #1a1a1a;
+      color: #fff;
+      outline: none;
     }
+
     button {
+      margin-top: 20px;
       background-color: #ff4f00;
-      color: white;
       border: none;
-      padding: 12px 24px;
-      font-size: 18px;
-      border-radius: 10px;
+      border-radius: 12px;
+      padding: 14px 32px;
+      font-size: 1em;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #e64500;
+    }
+
+    footer {
+      width: 100%;
+      background: #111;
+      border-top: 1px solid #222;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+
+    footer button {
+      all: unset;
+      color: #fff;
+      font-size: 0.9em;
+      text-align: center;
       cursor: pointer;
     }
-    #status {
-      margin-top: 20px;
-      color: #ccc;
+
+    .hidden {
+      display: none;
+    }
+
+    .fade {
+      transition: all 0.3s ease-in-out;
+    }
+
+    #error {
+      margin-top: 10px;
+      color: #f44336;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
-  <h1>📲 Unlock Your Music</h1>
-  <p>Enter your phone number to continue</p>
-  <input type="tel" id="phone" placeholder="Enter your phone number" />
-  <br />
-  <button onclick="submitPhone()">Continue</button>
-  <div id="status"></div>
+  <header>
+    <h1>📱 OPLEY</h1>
+    <p>The Sound of Fandom. Unlocked.</p>
+    <input id="phoneInput" type="tel" placeholder="Enter your phone number" autofocus />
+    <br />
+    <button onclick="submitPhone()">Continue</button>
+    <div id="error" class="fade hidden">Invalid phone number</div>
+  </header>
+
+  <footer>
+    <button>🏠 Home</button>
+    <button>🔓 Drops</button>
+    <button>🎵 Vault</button>
+    <button>⚙️ Settings</button>
+  </footer>
 
   <script>
-    async function submitPhone() {
-      const phone = document.getElementById("phone").value.trim();
-      const status = document.getElementById("status");
+    function submitPhone() {
+      const input = document.getElementById("phoneInput").value.trim();
+      const error = document.getElementById("error");
 
-      if (!phone) {
-        status.innerText = "⚠️ Please enter a phone number.";
+      if (!/^\d{7,15}$/.test(input)) {
+        error.classList.remove("hidden");
         return;
       }
 
-      status.innerText = "⏳ Checking...";
-
-      try {
-        const response = await fetch("https://opley-minting-api.vercel.app/api/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ phone })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          localStorage.setItem("phone", phone);
-          window.location.href = "step2.html";
-        } else {
-          status.innerText = `❌ Error: ${result.error || "Unknown error"}`;
-        }
-      } catch (err) {
-        status.innerText = "❌ Network error. Please try again.";
-        console.error(err);
-      }
+      localStorage.setItem("phone", input);
+      error.classList.add("hidden");
+      setTimeout(() => {
+        window.location.href = "step2.html";
+      }, 500);
     }
   </script>
 </body>
