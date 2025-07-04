@@ -12,6 +12,13 @@
       margin: 0;
       padding: 1rem 1rem 100px;
     }
+    h2 {
+      text-align: center;
+      font-size: 1rem;
+      opacity: 0.7;
+      margin-top: 2rem;
+      letter-spacing: 1px;
+    }
     .drop-module {
       background-color: #111;
       border-radius: 16px;
@@ -109,7 +116,13 @@
 </head>
 <body>
 
-  <div id="drops-container"></div>
+  <h2>AVAILABLE TO UNLOCK</h2>
+  <div id="locked-drops"></div>
+
+  <hr style="margin: 2rem auto; opacity: 0.2; width: 80%;">
+
+  <h2>YOUR UNLOCKS</h2>
+  <div id="unlocked-drops"></div>
 
   <div class="nav">
     <button onclick="location.href='step2.html'">🔥 Drops</button>
@@ -132,9 +145,12 @@
       }
     };
 
-    const container = document.getElementById("drops-container");
+    const lockedContainer = document.getElementById("locked-drops");
+    const unlockedContainer = document.getElementById("unlocked-drops");
 
-    Object.keys(drops).forEach((key) => {
+    Object.keys(drops).forEach((key) => renderDropCard(key));
+
+    async function renderDropCard(key) {
       const d = drops[key];
       const release = new Date(d.releaseDate);
       const now = new Date();
@@ -147,6 +163,7 @@
 
       const module = document.createElement("div");
       module.className = "drop-module";
+      module.id = `card-${key}`;
       module.innerHTML = `
         <div class="drop-preview" style="background-image: url('${d.image}')"></div>
         <div class="drop-title">${d.title}</div>
@@ -164,25 +181,25 @@
           <button onclick="location.href='vault.html'">📁 Go to Vault</button>
         </div>
       `;
-      container.appendChild(module);
-      checkAccess(key);
-    });
 
-    async function checkAccess(dropKey) {
       const phone = localStorage.getItem("phone");
       if (!phone) return location.href = "step_1_phone_entry.html";
 
       const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, drop: dropKey })
+        body: JSON.stringify({ phone, drop: key })
       });
 
       const result = await res.json();
+
       if (result.accessGranted) {
-        document.getElementById(`unlockBtn-${dropKey}`).style.display = "none";
-        document.getElementById(`unlocked-${dropKey}`).style.display = "block";
-        document.getElementById(`actions-${dropKey}`).style.display = "flex";
+        module.querySelector(`#unlockBtn-${key}`).style.display = "none";
+        module.querySelector(`#unlocked-${key}`).style.display = "block";
+        module.querySelector(`#actions-${key}`).style.display = "flex";
+        unlockedContainer.appendChild(module);
+      } else {
+        lockedContainer.appendChild(module);
       }
     }
 
@@ -206,6 +223,8 @@
           btn.style.display = "none";
           document.getElementById(`unlocked-${dropKey}`).style.display = "block";
           document.getElementById(`actions-${dropKey}`).style.display = "flex";
+          const module = document.getElementById(`card-${dropKey}`);
+          unlockedContainer.appendChild(module);
         } else {
           throw new Error(result.error || "Unknown unlock error.");
         }
