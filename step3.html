@@ -110,26 +110,26 @@
     const drop = new URLSearchParams(window.location.search).get("drop");
     const audio = document.getElementById("audio");
     const playPauseBtn = document.getElementById("playPause");
-
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     const drops = {
       "SONG1": {
-  title: "SONG1",
-  artist: "WHOSDIZZ",
-  image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
-  audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
-  audioEncrypted: "https://cloudflare-ipfs.com/ipfs/bafybeiepmomcmeodqbz4ikqap6vfl7dpgnop7hog4i4i63abmzoigp3svu",
-  audioEncryptedFallback: "https://gateway.pinata.cloud/ipfs/bafybeiepmomcmeodqbz4ikqap6vfl7dpgnop7hog4i4i63abmzoigp3svu",
-  key: "ed8d476fd2381e91bed6a1b3f30419a7",
-  iv: "565aeb586eaea90bbdd6f59b5442f69f"
+        title: "SONG1",
+        artist: "WHOSDIZZ",
+        image: "https://ipfs.io/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
+        audioMobile: "https://ipfs.io/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
+        audioEncrypted: "https://ipfs.io/ipfs/bafybeiepmomcmeodqbz4ikqap6vfl7dpgnop7hog4i4i63abmzoigp3svu",
+        audioEncryptedFallback: "https://gateway.pinata.cloud/ipfs/bafybeiepmomcmeodqbz4ikqap6vfl7dpgnop7hog4i4i63abmzoigp3svu",
+        key: "ed8d476fd2381e91bed6a1b3f30419a7",
+        iv: "565aeb586eaea90bbdd6f59b5442f69f"
       },
       "Grande Eres Señor": {
         title: "Grande Eres Señor",
         artist: "LOVE",
-        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
-        audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeiey6oomcyrqi7fo6ty6ynzfevdbqjjhadzcbnvio3yd2h6tkm23me",
-        audioEncrypted: "https://gateway.pinata.cloud/ipfs/bafybeifs6pqmuqq5suksrnwrh24ksjzx4l7dqeigk2l5zeqfvmizf7agqe",
+        image: "https://ipfs.io/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
+        audioMobile: "https://ipfs.io/ipfs/bafybeiey6oomcyrqi7fo6ty6ynzfevdbqjjhadzcbnvio3yd2h6tkm23me",
+        audioEncrypted: "https://ipfs.io/ipfs/bafybeifs6pqmuqq5suksrnwrh24ksjzx4l7dqeigk2l5zeqfvmizf7agqe",
+        audioEncryptedFallback: "https://gateway.pinata.cloud/ipfs/bafybeifs6pqmuqq5suksrnwrh24ksjzx4l7dqeigk2l5zeqfvmizf7agqe",
         key: "39b04bc2cd217d0b23817971089244f9",
         iv: "f3aee0ba22e269b25b99e086b27dcd27"
       }
@@ -139,7 +139,7 @@
       try {
         let response = await fetch(encryptedUrl);
         if (!response.ok) {
-          console.warn("⚠️ Primary gateway failed, using fallback.");
+          console.warn("⚠️ Primary gateway failed, trying fallback.");
           response = await fetch(fallbackUrl);
         }
 
