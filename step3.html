@@ -1,154 +1,142 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>🎧 Now Playing – OPLEY</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>OPLEY Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
+    body, html {
+      margin: 0;
+      padding: 0;
       background-color: #000;
-      color: #fff;
       font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
+      color: white;
+      height: 100%;
+      overflow: hidden;
     }
-    img.cover {
+
+    .player-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
+    }
+
+    .overlay {
       width: 100%;
-      max-width: 300px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+      padding: 1.5rem;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 40%, transparent 100%);
+      position: absolute;
+      bottom: 0;
     }
-    button {
-      background-color: #ff4f00;
-      color: #fff;
+
+    .track-info {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .track-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .track-artist {
+      font-size: 0.95rem;
+      opacity: 0.7;
+      margin-top: 0.2rem;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    .controls button {
+      background: none;
       border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 10px;
+      color: white;
+      font-size: 2rem;
       cursor: pointer;
-      margin: 10px 5px;
     }
-    #volumeSlider {
-      width: 150px;
-      margin-top: 10px;
-    }
-    #status {
-      margin-top: 20px;
-      color: #ccc;
+
+    audio {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h1>🎵 Now Playing</h1>
-  <p id="trackTitle">Checking drop...</p>
-  <img class="cover" id="coverArt" src="" alt="Cover">
-  <br>
-  <div id="playerUI" style="display:none;">
-    <button onclick="playAudio()">▶️ Play</button>
-    <button onclick="stopAudio()">⏹ Stop</button>
-    <br>
-    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+  <div id="player" class="player-screen">
+    <div class="overlay">
+      <div class="track-info">
+        <div class="track-title" id="trackTitle">Loading...</div>
+        <div class="track-artist" id="trackArtist">...</div>
+      </div>
+      <div class="controls">
+        <button onclick="rewind()">⏮️</button>
+        <button id="playPause" onclick="togglePlay()">▶️</button>
+        <button onclick="forward()">⏭️</button>
+      </div>
+    </div>
   </div>
-  <p id="status">Verifying access...</p>
-  <audio id="audioPlayer"></audio>
+
+  <audio id="audio" controls></audio>
 
   <script>
     const drop = new URLSearchParams(window.location.search).get("drop");
-    const phone = localStorage.getItem("phone");
 
-    const dropData = {
+    const drops = {
       "SONG1": {
-        title: "SONG1 by WHOSDIZZ",
-        cover: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
-        audio: "https://gateway.pinata.cloud/ipfs/bafybeiegqnz3tjtk5sq4jldtispzzugdc7l5b62pmg5k5gm3g6zlcapqge", // encrypted
-        key: "a04d767ac05ddc9df993e1baa5dc58f3",
-        iv: "2e3a81e1b826b2de330616aa6e8884b6"
+        title: "SONG1",
+        artist: "WHOSDIZZ",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
+        audio: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u"
       },
-      "GRANDE": {
-        title: "Grande Eres Señor by LOVE",
-        cover: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
-        audio: "https://gateway.pinata.cloud/ipfs/bafybeihoygfnw7xclbejbbllzrh2pqfohwh3xnmwkuk3eyjoaqozjkwjiq", // encrypted
-        key: "ef6d5ce230f786a3082e6c657f4f25d4",
-        iv: "3b197b4e8aeb3dcdf8e9274dc2b31777"
+      "Grande Eres Señor": {
+        title: "Grande Eres Señor",
+        artist: "LOVE",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
+        audio: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u"
       }
     };
 
-    if (!drop || !dropData[drop] || !phone) {
-      document.getElementById("status").innerText = "❌ Invalid or missing drop/phone. Please go back.";
-      throw new Error("Invalid drop or phone.");
+    if (!drop || !drops[drop]) {
+      alert("Invalid or missing drop.");
+    } else {
+      const data = drops[drop];
+      document.getElementById("trackTitle").innerText = data.title;
+      document.getElementById("trackArtist").innerText = data.artist;
+      document.getElementById("audio").src = data.audio;
+      document.getElementById("player").style.backgroundImage = `url('${data.image}')`;
     }
 
-    document.getElementById("trackTitle").innerText = dropData[drop].title;
-    document.getElementById("coverArt").src = dropData[drop].cover;
+    const audio = document.getElementById("audio");
+    const playPauseBtn = document.getElementById("playPause");
 
-    async function decryptAudio(url, keyHex, ivHex) {
-      const response = await fetch(url);
-      const encrypted = await response.arrayBuffer();
-
-      const key = await crypto.subtle.importKey(
-        "raw",
-        new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16))),
-        { name: "AES-CBC" },
-        false,
-        ["decrypt"]
-      );
-
-      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-
-      const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-CBC", iv },
-        key,
-        encrypted
-      );
-
-      const blob = new Blob([decrypted], { type: "audio/mpeg" });
-      return URL.createObjectURL(blob);
-    }
-
-    async function checkAccess() {
-      try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop })
-        });
-
-        const data = await res.json();
-
-        if (data.hasAccess) {
-          document.getElementById("status").innerText = "✅ Access granted. Get ready!";
-          const blobUrl = await decryptAudio(
-            dropData[drop].audio,
-            dropData[drop].key,
-            dropData[drop].iv
-          );
-          document.getElementById("audioPlayer").src = blobUrl;
-          document.getElementById("playerUI").style.display = "block";
-        } else {
-          document.getElementById("status").innerText = "❌ Access denied. Please unlock this drop first.";
-        }
-      } catch (err) {
-        console.error("❌ Error checking access:", err);
-        document.getElementById("status").innerText = "❌ Error verifying access.";
+    function togglePlay() {
+      if (audio.paused) {
+        audio.play();
+        playPauseBtn.innerText = "⏸️";
+      } else {
+        audio.pause();
+        playPauseBtn.innerText = "▶️";
       }
     }
 
-    function playAudio() {
-      document.getElementById("audioPlayer").play();
+    function rewind() {
+      audio.currentTime = Math.max(0, audio.currentTime - 10);
     }
 
-    function stopAudio() {
-      const audio = document.getElementById("audioPlayer");
-      audio.pause();
-      audio.currentTime = 0;
+    function forward() {
+      audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
     }
-
-    document.getElementById("volumeSlider").addEventListener("input", function() {
-      document.getElementById("audioPlayer").volume = parseFloat(this.value);
-    });
-
-    checkAccess();
   </script>
 </body>
 </html>
