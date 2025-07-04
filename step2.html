@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Unlock Drop – OPLEY</title>
+  <title>OPLEY Drops</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
@@ -10,14 +10,14 @@
       color: #fff;
       font-family: sans-serif;
       text-align: center;
-      padding: 40px;
+      padding: 40px 20px 100px;
       margin: 0;
     }
     .drop-card {
       background-color: #111;
       border-radius: 20px;
       padding: 1rem;
-      margin: 1rem auto;
+      margin: 1.5rem auto;
       text-align: center;
       max-width: 340px;
       box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
@@ -56,10 +56,6 @@
       font-size: 1rem;
       cursor: pointer;
     }
-    #status {
-      margin-top: 20px;
-      color: #ccc;
-    }
     .nav {
       position: fixed;
       bottom: 0;
@@ -83,20 +79,8 @@
 </head>
 <body>
 
-  <h1>🔓 Unlock Your Drop</h1>
-
-  <div class="drop-card">
-    <div id="dropCover" class="drop-cover" style="display:none;">
-      <div class="drop-preview-button" onclick="playPreview()">▶ 15s Preview</div>
-    </div>
-
-    <h2 id="dropTitle">Loading...</h2>
-
-    <div id="status">Checking access...</div>
-
-    <button id="unlockBtn" class="button" style="display:none;" onclick="unlock()">🪙 Unlock for $0</button>
-    <button id="playBtn" class="button" style="display:none;" onclick="goToPlayer()">▶️ Play</button>
-  </div>
+  <h1>🔥 Available Drops</h1>
+  <div id="drops-container"></div>
 
   <div class="nav">
     <button onclick="location.href='step2.html'">🔥 Drops</button>
@@ -106,89 +90,108 @@
   </div>
 
   <script>
-    const drop = "SONG1";
-    const dropData = {
+    const drops = {
       "SONG1": {
         title: "SONG1 by WHOSDIZZ",
         image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
         preview: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
         tokenURI: "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74"
+      },
+      "Grande Eres Señor": {
+        title: "Grande Eres Señor by LOVE",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
+        preview: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
+        tokenURI: "ipfs://bafkreibvto2gelqwvdgkvrar43462e23wm5rmlcp2mb2caabdb7bwjfupm"
       }
     };
 
-    let currentPreview = "";
+    const container = document.getElementById("drops-container");
 
-    async function checkAccess() {
+    function renderDropCard(data, key) {
+      return `
+        <div class="drop-card" id="card-${key}">
+          <div class="drop-cover" style="background-image: url('${data.image}')">
+            <div class="drop-preview-button" onclick="playPreview('${data.preview}')">▶ Preview</div>
+          </div>
+          <h3>${data.title}</h3>
+          <p><em>“This song is not on Spotify or Apple Music.”</em></p>
+          <div id="status-${key}">Checking access...</div>
+          <button id="unlockBtn-${key}" class="button" style="display:none;" onclick="unlock('${key}')">🪙 Unlock for $0</button>
+          <button id="playBtn-${key}" class="button" style="display:none;" onclick="goToPlayer('${key}')">▶️ Play</button>
+        </div>
+      `;
+    }
+
+    async function checkAccessForDrop(key) {
       const phone = localStorage.getItem("phone");
       if (!phone) return location.href = "step_1_phone_entry.html";
 
-      const data = dropData[drop];
-      currentPreview = data.preview;
+      const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, drop: key })
+      });
 
-      document.getElementById("dropTitle").innerText = data.title;
-      document.getElementById("dropCover").style.backgroundImage = `url('${data.image}')`;
-      document.getElementById("dropCover").style.display = "block";
+      const result = await res.json();
+      const status = document.getElementById(`status-${key}`);
+      const unlockBtn = document.getElementById(`unlockBtn-${key}`);
+      const playBtn = document.getElementById(`playBtn-${key}`);
 
-      try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop })
-        });
-
-        const result = await res.json();
-        if (result.accessGranted) {
-          document.getElementById("status").innerText = "✅ You've already unlocked this drop!";
-          document.getElementById("playBtn").style.display = "block";
-        } else {
-          document.getElementById("status").innerText = "🎶 Ready to unlock!";
-          document.getElementById("unlockBtn").style.display = "block";
-        }
-      } catch (err) {
-        document.getElementById("status").innerText = "⚠️ Error checking access.";
+      if (result.accessGranted) {
+        status.innerText = "✅ You've already unlocked this drop!";
+        playBtn.style.display = "block";
+      } else {
+        status.innerText = "🎶 Ready to unlock!";
+        unlockBtn.style.display = "block";
       }
     }
 
-    async function unlock() {
+    function playPreview(url) {
+      const audio = new Audio(url);
+      audio.currentTime = 0;
+      audio.play();
+    }
+
+    async function unlock(key) {
       const phone = localStorage.getItem("phone");
       if (!phone) return;
 
-      document.getElementById("status").innerText = "⏳ Unlocking...";
-      document.getElementById("unlockBtn").style.display = "none";
+      const status = document.getElementById(`status-${key}`);
+      const unlockBtn = document.getElementById(`unlockBtn-${key}`);
+      const playBtn = document.getElementById(`playBtn-${key}`);
+
+      status.innerText = "⏳ Unlocking...";
+      unlockBtn.style.display = "none";
 
       try {
         const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop })
+          body: JSON.stringify({ phone, drop: key })
         });
 
         const result = await res.json();
         if (res.ok && result.tokenId) {
-          document.getElementById("status").innerText = `✅ Drop unlocked! Token #${result.tokenId}`;
-          document.getElementById("playBtn").style.display = "block";
+          status.innerText = `✅ Drop unlocked! Token #${result.tokenId}`;
+          playBtn.style.display = "block";
         } else {
           throw new Error(result.error || "Unknown unlock error.");
         }
       } catch (err) {
-        document.getElementById("status").innerText = "❌ Unlock failed: " + err.message;
-        document.getElementById("unlockBtn").style.display = "block";
+        status.innerText = "❌ Unlock failed: " + err.message;
+        unlockBtn.style.display = "block";
       }
     }
 
-    function playPreview() {
-      if (currentPreview) {
-        const audio = new Audio(currentPreview);
-        audio.currentTime = 0;
-        audio.play();
-      }
+    function goToPlayer(key) {
+      window.location.href = `step3.html?drop=${encodeURIComponent(key)}`;
     }
 
-    function goToPlayer() {
-      window.location.href = `step3.html?drop=${encodeURIComponent(drop)}`;
-    }
-
-    checkAccess();
+    // Render all drops
+    Object.keys(drops).forEach((key) => {
+      container.innerHTML += renderDropCard(drops[key], key);
+      checkAccessForDrop(key);
+    });
   </script>
 
 </body>
