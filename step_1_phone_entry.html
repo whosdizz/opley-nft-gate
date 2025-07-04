@@ -1,44 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>OPLEY – Get Exclusive Drops</title>
+  <title>OPLEY – Unlock Music</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
-      background-color: #0b0b0b;
+      background-color: #000;
       color: #fff;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
       align-items: center;
       justify-content: space-between;
+      min-height: 100vh;
+      padding: 40px 20px;
     }
 
-    header {
-      text-align: center;
-      margin-top: 80px;
+    .logo {
+      width: 120px;
+      margin-top: 60px;
     }
 
     h1 {
       font-size: 2em;
-      margin-bottom: 10px;
+      margin: 30px 0 10px;
+      text-align: center;
     }
 
     p {
       font-size: 1em;
       color: #aaa;
+      text-align: center;
+      line-height: 1.4;
     }
 
-    input[type="tel"] {
+    input {
       margin-top: 30px;
       padding: 16px;
       font-size: 1em;
       border: none;
       border-radius: 12px;
-      width: 80%;
+      width: 100%;
       max-width: 320px;
       text-align: center;
       background: #1a1a1a;
@@ -46,73 +50,55 @@
       outline: none;
     }
 
-    button {
-      margin-top: 20px;
-      background-color: #ff4f00;
+    button.primary {
+      margin-top: 30px;
+      background-color: #fff;
+      color: #000;
       border: none;
-      border-radius: 12px;
-      padding: 14px 32px;
+      border-radius: 14px;
+      padding: 16px;
       font-size: 1em;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background-color: #e64500;
-    }
-
-    footer {
+      font-weight: bold;
       width: 100%;
-      background: #111;
-      border-top: 1px solid #222;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-    }
-
-    footer button {
-      all: unset;
-      color: #fff;
-      font-size: 0.9em;
-      text-align: center;
+      max-width: 320px;
       cursor: pointer;
+      transition: 0.3s;
     }
 
-    .hidden {
-      display: none;
+    button.primary:hover {
+      background: #e5e5e5;
     }
 
-    .fade {
-      transition: all 0.3s ease-in-out;
+    .secondary {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #888;
+      cursor: pointer;
+      text-decoration: underline;
     }
 
     #error {
-      margin-top: 10px;
-      color: #f44336;
+      color: #ff4f00;
+      margin-top: 15px;
       font-size: 0.9em;
+      display: none;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>📱 OPLEY</h1>
-    <p>The Sound of Fandom. Unlocked.</p>
-    <input id="phoneInput" type="tel" placeholder="Enter your phone number" autofocus />
-    <br />
-    <button onclick="submitPhone()">Continue</button>
-    <div id="error" class="fade hidden">Invalid phone number</div>
-  </header>
 
-  <footer>
-    <button>🏠 Home</button>
-    <button>🔓 Drops</button>
-    <button>🎵 Vault</button>
-    <button>⚙️ Settings</button>
-  </footer>
+  <img class="logo" src="https://whosdizz.github.io/opley-nft-gate/logo.png" alt="OPLEY Logo" />
+
+  <div>
+    <h1>Unlock exclusive music</h1>
+    <p>Collect limited edition tracks<br />and digital collectibles.</p>
+
+    <input id="phoneInput" type="tel" placeholder="Enter your phone number" />
+    <div id="error">Please enter a valid phone number</div>
+
+    <button class="primary" onclick="submitPhone()">Get Started</button>
+    <div class="secondary" onclick="alert('More info coming soon!')">Learn More</div>
+  </div>
 
   <script>
     function submitPhone() {
@@ -120,16 +106,17 @@
       const error = document.getElementById("error");
 
       if (!/^\d{7,15}$/.test(input)) {
-        error.classList.remove("hidden");
+        error.style.display = "block";
         return;
       }
 
       localStorage.setItem("phone", input);
-      error.classList.add("hidden");
+      error.style.display = "none";
       setTimeout(() => {
         window.location.href = "step2.html";
       }, 500);
     }
   </script>
+
 </body>
 </html>
