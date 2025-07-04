@@ -1,127 +1,102 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Unlock Drop – OPLEY</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OPLEY Drops</title>
   <style>
-    body {
-      background: #000;
-      color: #fff;
-      font-family: sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-    img.cover {
-      max-width: 300px;
-      border-radius: 20px;
-      box-shadow: 0 0 30px rgba(255, 79, 0, 0.4);
-    }
-    button {
-      background-color: #ff4f00;
-      color: white;
-      border: none;
-      padding: 14px 28px;
-      font-size: 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    #status {
-      margin-top: 20px;
-      color: #ccc;
-    }
+    body { background-color: #000; color: white; font-family: sans-serif; margin: 0; padding: 0 1rem 6rem; }
+    .drop-card { background-color: #111; border-radius: 20px; padding: 1rem; margin: 1rem 0; text-align: center; }
+    .drop-cover { width: 100%; max-width: 300px; height: 300px; border-radius: 20px; background-size: cover; background-position: center; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; position: relative; }
+    .drop-cover-overlay { position: absolute; width: 100%; height: 100%; border-radius: 20px; background: rgba(0, 0, 0, 0.5); }
+    .drop-preview-button { z-index: 2; border: 2px solid white; border-radius: 50%; padding: 1rem; cursor: pointer; }
+    .button { display: block; width: 100%; margin: 0.5rem 0; padding: 0.75rem; background-color: #1e90ff; border: none; border-radius: 10px; color: white; font-size: 1rem; cursor: pointer; }
+    .button-outline { background: transparent; border: 1px solid white; }
+    .fake-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10; }
+    .fake-modal-content { background: #222; padding: 2rem; border-radius: 1rem; text-align: center; }
+    .nav { position: fixed; bottom: 0; left: 0; right: 0; background: #000; border-top: 1px solid #444; display: flex; justify-content: space-around; padding: 0.75rem; font-size: 0.9rem; }
+    .nav button { background: none; border: none; color: white; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h1>🔓 Unlock Your Drop</h1>
-  <p id="dropTitle">Loading...</p>
-  <img class="cover" id="coverImage" src="" alt="Cover Art" style="display:none;" />
-  <div id="status">Checking access...</div>
-  <button id="unlockBtn" style="display:none;" onclick="unlock()">🪙 Unlock for $0</button>
-  <button id="playBtn" style="display:none;" onclick="goToPlayer()">▶️ Play</button>
+
+  <div id="drops-container"></div>
+
+  <div class="nav">
+    <button>🔥 Drops</button>
+    <button onclick="location.href='/player.html'">▶ Now Playing</button>
+    <button onclick="location.href='/vault.html'">📁 Vault</button>
+    <button onclick="location.href='/profile.html'">👤 Profile</button>
+  </div>
+
+  <div id="modal" class="fake-modal" style="display:none">
+    <div class="fake-modal-content">
+      <p>🔒 Fake Checkout Modal</p>
+      <p>This would launch Stripe or Apple Pay flow.</p>
+      <button class="button" onclick="closeModal()">Close</button>
+    </div>
+  </div>
 
   <script>
-    const drop = new URLSearchParams(window.location.search).get("drop");
-    const dropData = {
-      "SONG1": {
-        title: "SONG1 by WHOSDIZZ",
-        image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
-        tokenURI: "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74"
-      },
-      "Grande Eres Señor": {
-        title: "Grande Eres Señor by LOVE",
-        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
-        tokenURI: "ipfs://bafkreibvto2gelqwvdgkvrar43462e23wm5rmlcp2mb2caabdb7bwjfupm"
+    const metadataCIDs = [
+      "bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74"
+    ];
+    const ipfsGateway = "https://gateway.pinata.cloud/ipfs/";
+    const container = document.getElementById('drops-container');
+
+    metadataCIDs.forEach(async (cid, index) => {
+      const res = await fetch(ipfsGateway + cid);
+      const meta = await res.json();
+
+      const releaseDate = new Date(meta.releaseDate);
+      const now = new Date();
+      const diff = releaseDate - now;
+      let timeLeft = "⏳ Now Available";
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        timeLeft = `⏳ ${days}d ${hours}h ${minutes}m left`;
       }
-    };
 
-    async function checkAccess() {
-      if (!drop || !dropData[drop]) {
-        document.getElementById("status").innerText = "❌ Invalid or missing drop.";
-        return;
-      }
-
-      const phone = localStorage.getItem("phone");
-      if (!phone) return location.href = "step_1_phone_entry.html";
-
-      const data = dropData[drop];
-      document.getElementById("dropTitle").innerText = data.title;
-      document.getElementById("coverImage").src = data.image;
-      document.getElementById("coverImage").style.display = "block";
-
-      try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop })
-        });
-
-        const result = await res.json();
-        if (result.accessGranted) {
-          document.getElementById("status").innerText = "✅ You've already unlocked this drop!";
-          document.getElementById("playBtn").style.display = "inline-block";
-        } else {
-          document.getElementById("status").innerText = "🎶 Ready to unlock!";
-          document.getElementById("unlockBtn").style.display = "inline-block";
+      const card = document.createElement('div');
+      card.className = 'drop-card';
+      card.innerHTML = `
+        <h3>${meta.artist}</h3>
+        <div class="drop-cover" style="background-image: url('${ipfsGateway + meta.image}')">
+          <div class="drop-cover-overlay"></div>
+          <div class="drop-preview-button" onclick="playPreview('${ipfsGateway + meta.mobileAudio}')">▶</div>
+        </div>
+        <h4>${meta.title}</h4>
+        <p>Release Date: ${new Date(meta.releaseDate).toDateString()}</p>
+        <p>${timeLeft}</p>
+        <p><em>“This song is not on Spotify or Apple Music.”</em></p>
+        ${
+          meta.unlocked
+            ? `<div class="button" style="background:#4caf50;">🎉 Unlocked – ▶ Play Now</div>`
+            : `<button class="button" onclick="showModal()">UNLOCK FULL TRACK – ${meta.price || '$0.99'}</button>
+               <div style="display:flex; gap:10px;">
+                 <button class="button button-outline">Pay</button>
+                 <button class="button button-outline">Credit Card</button>
+               </div>`
         }
-      } catch (err) {
-        document.getElementById("status").innerText = "⚠️ Error checking access.";
-      }
+      `;
+      container.appendChild(card);
+    });
+
+    function playPreview(url) {
+      const audio = new Audio(url);
+      audio.currentTime = 0;
+      audio.play();
     }
 
-    async function unlock() {
-      const phone = localStorage.getItem("phone");
-      if (!phone) return;
-
-      document.getElementById("status").innerText = "⏳ Unlocking...";
-      document.getElementById("unlockBtn").style.display = "none";
-
-      try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop })
-        });
-
-        const result = await res.json();
-        if (res.ok && result.tokenId) {
-          document.getElementById("status").innerText = `✅ Drop unlocked!\nToken #${result.tokenId}`;
-          document.getElementById("playBtn").style.display = "inline-block";
-        } else {
-          throw new Error(result.error || "Unknown unlock error.");
-        }
-      } catch (err) {
-        document.getElementById("status").innerText = "❌ Unlock failed: " + err.message;
-        document.getElementById("unlockBtn").style.display = "inline-block";
-      }
+    function showModal() {
+      document.getElementById('modal').style.display = 'flex';
     }
 
-    function goToPlayer() {
-      window.location.href = `step3.html?drop=${encodeURIComponent(drop)}`;
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
     }
-
-    checkAccess();
   </script>
 </body>
 </html>
