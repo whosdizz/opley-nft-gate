@@ -6,54 +6,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      background: #000;
-      color: #fff;
+      background-color: #000;
+      color: white;
       font-family: sans-serif;
-      text-align: center;
-      padding: 40px 20px 100px;
       margin: 0;
+      padding: 1rem 1rem 100px;
     }
-    .drop-card {
+    .drop-module {
       background-color: #111;
-      border-radius: 20px;
+      border-radius: 16px;
       padding: 1rem;
-      margin: 1.5rem auto;
+      max-width: 380px;
+      margin: 2rem auto;
       text-align: center;
-      max-width: 340px;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
     }
-    .drop-cover {
+    .drop-preview {
       width: 100%;
-      height: 300px;
+      padding-top: 100%;
       border-radius: 20px;
-      background-size: cover;
-      background-position: center;
+      background: linear-gradient(135deg, #ff6600, #3a00ff);
       position: relative;
       margin-bottom: 1rem;
-      box-shadow: 0 0 30px rgba(255, 79, 0, 0.4);
     }
-    .drop-preview-button {
+    .drop-preview button {
       position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      padding: 0.5rem 1rem;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.5);
       border: 2px solid white;
-      border-radius: 30px;
+      color: white;
+      font-size: 16px;
+      border-radius: 50px;
+      padding: 0.5rem 1rem;
       cursor: pointer;
-      font-size: 0.9rem;
     }
-    .button {
-      display: block;
-      width: 100%;
-      margin: 0.5rem 0;
-      padding: 0.75rem;
-      background-color: #ff4f00;
+    .drop-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 0.3rem;
+    }
+    .drop-meta {
+      font-size: 0.9rem;
+      margin: 0.3rem 0;
+    }
+    .italic {
+      font-style: italic;
+      font-size: 0.85rem;
+      color: #ccc;
+      margin: 0.5rem 0 1rem;
+    }
+    .button-primary {
+      background: #347eff;
+      color: white;
       border: none;
       border-radius: 10px;
-      color: white;
+      padding: 0.8rem;
       font-size: 1rem;
+      width: 100%;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    .pay-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .pay-row button {
+      flex: 1;
+      background: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 0.6rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .unlocked-label {
+      color: #4caf50;
+      font-size: 1rem;
+      margin: 0.75rem 0 0.25rem;
+    }
+    .drop-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .drop-actions button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 0.9rem;
       cursor: pointer;
     }
     .nav {
@@ -67,7 +109,6 @@
       justify-content: space-around;
       padding: 0.75rem;
       font-size: 0.9rem;
-      z-index: 20;
     }
     .nav button {
       background: none;
@@ -79,7 +120,6 @@
 </head>
 <body>
 
-  <h1>🔥 Available Drops</h1>
   <div id="drops-container"></div>
 
   <div class="nav">
@@ -92,59 +132,50 @@
   <script>
     const drops = {
       "SONG1": {
-        title: "SONG1 by WHOSDIZZ",
-        image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
+        artist: "WHOSDIZZ",
+        title: "SONG1 – EXCLUSIVE DROP",
         preview: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
+        releaseDate: "2025-07-10T00:00:00Z",
         tokenURI: "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74"
-      },
-      "Grande Eres Señor": {
-        title: "Grande Eres Señor by LOVE",
-        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
-        preview: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
-        tokenURI: "ipfs://bafkreibvto2gelqwvdgkvrar43462e23wm5rmlcp2mb2caabdb7bwjfupm"
       }
     };
 
     const container = document.getElementById("drops-container");
 
-    function renderDropCard(data, key) {
-      return `
-        <div class="drop-card" id="card-${key}">
-          <div class="drop-cover" style="background-image: url('${data.image}')">
-            <div class="drop-preview-button" onclick="playPreview('${data.preview}')">▶ Preview</div>
-          </div>
-          <h3>${data.title}</h3>
-          <p><em>“This song is not on Spotify or Apple Music.”</em></p>
-          <div id="status-${key}">Checking access...</div>
-          <button id="unlockBtn-${key}" class="button" style="display:none;" onclick="unlock('${key}')">🪙 Unlock for $0</button>
-          <button id="playBtn-${key}" class="button" style="display:none;" onclick="goToPlayer('${key}')">▶️ Play</button>
+    Object.keys(drops).forEach((key) => {
+      const d = drops[key];
+      const release = new Date(d.releaseDate);
+      const now = new Date();
+      const diff = release - now;
+      let countdown = "⏳ Now Available";
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        countdown = `⏳ ${days} Days Left to Unlock`;
+      }
+
+      const module = document.createElement("div");
+      module.className = "drop-module";
+      module.innerHTML = `
+        <div class="drop-preview">
+          <button onclick="playPreview('${d.preview}')">▶ PLAY 00:15 PREVIEW</button>
+        </div>
+        <div class="drop-title">${d.title}</div>
+        <div class="drop-meta">Release Date: ${release.toDateString()}</div>
+        <div class="drop-meta">${countdown}</div>
+        <div class="italic">“This song is not on Spotify or Apple Music.”</div>
+        <button class="button-primary">UNLOCK FULL TRACK – $0.99</button>
+        <div class="pay-row">
+          <button>Pay</button>
+          <button>Credit Card</button>
+        </div>
+        <div class="unlocked-label">🎉 Unlocked!</div>
+        <div class="drop-actions">
+          <button onclick="goToPlayer('${key}')">▶ Play Now</button>
+          <button onclick="location.href='vault.html'">📁 Go to Vault</button>
         </div>
       `;
-    }
-
-    async function checkAccessForDrop(key) {
-      const phone = localStorage.getItem("phone");
-      if (!phone) return location.href = "step_1_phone_entry.html";
-
-      const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, drop: key })
-      });
-
-      const result = await res.json();
-      const status = document.getElementById(`status-${key}`);
-      const unlockBtn = document.getElementById(`unlockBtn-${key}`);
-      const playBtn = document.getElementById(`playBtn-${key}`);
-
-      if (result.accessGranted) {
-        status.innerText = "✅ You've already unlocked this drop!";
-        playBtn.style.display = "block";
-      } else {
-        status.innerText = "🎶 Ready to unlock!";
-        unlockBtn.style.display = "block";
-      }
-    }
+      container.appendChild(module);
+    });
 
     function playPreview(url) {
       const audio = new Audio(url);
@@ -152,47 +183,9 @@
       audio.play();
     }
 
-    async function unlock(key) {
-      const phone = localStorage.getItem("phone");
-      if (!phone) return;
-
-      const status = document.getElementById(`status-${key}`);
-      const unlockBtn = document.getElementById(`unlockBtn-${key}`);
-      const playBtn = document.getElementById(`playBtn-${key}`);
-
-      status.innerText = "⏳ Unlocking...";
-      unlockBtn.style.display = "none";
-
-      try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop: key })
-        });
-
-        const result = await res.json();
-        if (res.ok && result.tokenId) {
-          status.innerText = `✅ Drop unlocked! Token #${result.tokenId}`;
-          playBtn.style.display = "block";
-        } else {
-          throw new Error(result.error || "Unknown unlock error.");
-        }
-      } catch (err) {
-        status.innerText = "❌ Unlock failed: " + err.message;
-        unlockBtn.style.display = "block";
-      }
-    }
-
     function goToPlayer(key) {
       window.location.href = `step3.html?drop=${encodeURIComponent(key)}`;
     }
-
-    // Render all drops
-    Object.keys(drops).forEach((key) => {
-      container.innerHTML += renderDropCard(drops[key], key);
-      checkAccessForDrop(key);
-    });
   </script>
-
 </body>
 </html>
