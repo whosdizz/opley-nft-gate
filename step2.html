@@ -2,74 +2,104 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Unlock Drops – OPLEY</title>
+  <title>OPLEY Drops</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      margin: 0;
-      font-family: sans-serif;
       background-color: #000;
-      color: #fff;
-      padding-bottom: 4rem;
+      color: white;
+      font-family: sans-serif;
+      margin: 0;
+      padding: 1rem 1rem 100px;
     }
-
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      margin: 1.5rem 1rem 0.5rem;
+    h2 {
+      text-align: center;
+      font-size: 1rem;
+      opacity: 0.7;
+      margin-top: 2rem;
+      letter-spacing: 1px;
     }
-
-    .drop-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
+    .drop-module {
+      background-color: #111;
+      border-radius: 16px;
       padding: 1rem;
+      max-width: 380px;
+      margin: 2rem auto;
+      text-align: center;
     }
-
-    .drop-card {
-      background: #111;
-      border-radius: 1rem;
-      overflow: hidden;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-    }
-
-    .drop-artwork {
+    .drop-preview {
       width: 100%;
-      display: block;
-      aspect-ratio: 1/1;
-      object-fit: cover;
+      padding-top: 100%;
+      border-radius: 20px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      margin-bottom: 1rem;
     }
-
-    .drop-info {
-      padding: 1rem;
-    }
-
     .drop-title {
       font-size: 1.1rem;
       font-weight: bold;
+      margin-bottom: 0.2rem;
     }
-
     .drop-artist {
+      font-size: 0.85rem;
+      font-weight: bold;
+      opacity: 0.8;
+      margin-bottom: 0.3rem;
+    }
+    .drop-meta {
       font-size: 0.9rem;
-      opacity: 0.7;
+      margin: 0.3rem 0;
     }
-
-    .drop-action {
-      margin-top: 1rem;
+    .italic {
+      font-style: italic;
+      font-size: 0.85rem;
+      color: #ccc;
+      margin: 0.5rem 0 1rem;
     }
-
-    .drop-action button {
-      background-color: #ff4f00;
+    .button-primary {
+      background: #347eff;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0.8rem;
+      font-size: 1rem;
+      width: 100%;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    .pay-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+    .pay-row button {
+      flex: 1;
+      background: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 0.6rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .unlocked-label {
+      color: #4caf50;
+      font-size: 1rem;
+      margin: 0.75rem 0 0.25rem;
+    }
+    .drop-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .drop-actions button {
+      background: none;
       border: none;
       color: white;
       font-size: 0.9rem;
-      font-weight: 600;
-      padding: 0.6rem 1.2rem;
-      border-radius: 0.6rem;
       cursor: pointer;
-      width: 100%;
     }
-
     .nav {
       position: fixed;
       bottom: 0;
@@ -79,26 +109,26 @@
       border-top: 1px solid #444;
       display: flex;
       justify-content: space-around;
-      padding: 0.75rem 0.5rem;
-      font-size: 0.95rem;
+      padding: 0.75rem;
+      font-size: 0.9rem;
     }
-
     .nav button {
       background: none;
       border: none;
       color: white;
       cursor: pointer;
-      font-size: 0.95rem;
     }
   </style>
 </head>
 <body>
 
-  <div class="section-title">AVAILABLE TO UNLOCK</div>
-  <div class="drop-list" id="availableDrops"></div>
+  <h2>AVAILABLE TO UNLOCK</h2>
+  <div id="locked-drops"></div>
 
-  <div class="section-title">YOUR UNLOCKS</div>
-  <div class="drop-list" id="unlockedDrops"></div>
+  <hr style="margin: 2rem auto; opacity: 0.2; width: 80%;">
+
+  <h2>YOUR UNLOCKS</h2>
+  <div id="unlocked-drops"></div>
 
   <div class="nav">
     <button onclick="location.href='step2.html'">🔥 Drops</button>
@@ -108,76 +138,120 @@
   </div>
 
   <script>
-    const phone = localStorage.getItem("phone");
-    if (!phone) location.href = "step_1_phone_entry.html";
-
     const drops = {
       "SONG1": {
         title: "SONG1",
         artist: "WHOSDIZZ",
-        image: "https://ipfs.io/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i"
+        image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
+        releaseDate: "2025-07-10T00:00:00Z"
       },
       "Grande Eres Señor": {
         title: "Grande Eres Señor",
         artist: "LOVE",
-        image: "https://ipfs.io/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq"
+        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
+        releaseDate: "2025-07-10T00:00:00Z"
       }
     };
 
-    async function checkAccess(drop) {
+    function safeId(key) {
+      return key.replace(/[^a-zA-Z0-9]/g, "-");
+    }
+
+    const lockedContainer = document.getElementById("locked-drops");
+    const unlockedContainer = document.getElementById("unlocked-drops");
+
+    Object.keys(drops).forEach((key) => renderDropCard(key));
+
+    async function renderDropCard(key) {
+      const d = drops[key];
+      const id = safeId(key);
+      const release = new Date(d.releaseDate);
+      const now = new Date();
+      const diff = release - now;
+      let countdown = "⏳ Now Available";
+      if (diff > 0) {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        countdown = `⏳ ${days} Days Left to Unlock`;
+      }
+
+      const module = document.createElement("div");
+      module.className = "drop-module";
+      module.id = `card-${id}`;
+      module.innerHTML = `
+        <div class="drop-preview" style="background-image: url('${d.image}')"></div>
+        <div class="drop-title">${d.title}</div>
+        <div class="drop-artist">${d.artist}</div>
+        <div class="drop-meta">Release Date: ${release.toDateString()}</div>
+        <div class="drop-meta">${countdown}</div>
+        <div class="italic">“This song is not on Spotify or Apple Music.”</div>
+        <button id="unlockBtn-${id}" class="button-primary" onclick="unlock('${key}')">UNLOCK FULL TRACK – $0.99</button>
+        <div class="pay-row" id="payRow-${id}" style="display:none;">
+          <button>Pay</button>
+          <button>Credit Card</button>
+        </div>
+        <div class="unlocked-label" id="unlocked-${id}" style="display:none;">🎉 Unlocked!</div>
+        <div class="drop-actions" id="actions-${id}" style="display:none;">
+          <button onclick="goToPlayer('${key}')">▶ Play Now</button>
+          <button onclick="location.href='vault.html'">📁 Go to Vault</button>
+        </div>
+      `;
+
+      const phone = localStorage.getItem("phone");
+      if (!phone) return location.href = "step_1_phone_entry.html";
+
       const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, drop })
+        body: JSON.stringify({ phone, drop: key })
       });
-      const data = await res.json();
-      return data.accessGranted === true;
-    }
 
-    async function loadDrops() {
-      for (const key in drops) {
-        const data = drops[key];
-        const unlocked = await checkAccess(key);
+      const result = await res.json();
 
-        const card = document.createElement("div");
-        card.className = "drop-card";
-        card.innerHTML = `
-          <img class="drop-artwork" src="${data.image}" />
-          <div class="drop-info">
-            <div class="drop-title">${data.title}</div>
-            <div class="drop-artist">${data.artist}</div>
-            <div class="drop-action">
-              <button onclick="handleAction('${key}', ${unlocked})">
-                ${unlocked ? '▶️ Play Now' : 'Unlock Full Track – $0.99'}
-              </button>
-            </div>
-          </div>
-        `;
-
-        if (unlocked) {
-          document.getElementById("unlockedDrops").appendChild(card);
-        } else {
-          document.getElementById("availableDrops").appendChild(card);
-        }
+      if (result.accessGranted) {
+        module.querySelector(`#unlockBtn-${id}`).style.display = "none";
+        module.querySelector(`#unlocked-${id}`).style.display = "block";
+        module.querySelector(`#actions-${id}`).style.display = "flex";
+        unlockedContainer.appendChild(module);
+      } else {
+        lockedContainer.appendChild(module);
       }
     }
 
-    function handleAction(drop, unlocked) {
-      if (unlocked) {
-        window.location.href = `step3.html?drop=${encodeURIComponent(drop)}`;
-      } else {
-        fetch("https://opley-minting-api.vercel.app/api/unlock", {
+    async function unlock(dropKey) {
+      const phone = localStorage.getItem("phone");
+      if (!phone) return;
+
+      const id = safeId(dropKey);
+      const btn = document.getElementById(`unlockBtn-${id}`);
+      btn.innerText = "⏳ Unlocking...";
+      btn.disabled = true;
+
+      try {
+        const res = await fetch("https://opley-minting-api.vercel.app/api/unlock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop })
-        })
-          .then(res => res.json())
-          .then(() => location.reload())
-          .catch(err => alert("Unlock failed."));
+          body: JSON.stringify({ phone, drop: dropKey })
+        });
+
+        const result = await res.json();
+        if (res.ok && result.tokenId) {
+          const module = document.getElementById(`card-${id}`);
+          document.getElementById(`unlockBtn-${id}`).style.display = "none";
+          document.getElementById(`unlocked-${id}`).style.display = "block";
+          document.getElementById(`actions-${id}`).style.display = "flex";
+          unlockedContainer.appendChild(module);
+        } else {
+          throw new Error(result.error || "Unknown unlock error.");
+        }
+      } catch (err) {
+        btn.innerText = "Try Again";
+        btn.disabled = false;
       }
     }
 
-    loadDrops();
+    function goToPlayer(key) {
+      window.location.href = `step3.html?drop=${encodeURIComponent(key)}`;
+    }
   </script>
 </body>
 </html>
