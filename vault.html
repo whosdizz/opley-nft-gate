@@ -1,92 +1,176 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>🎶 Your OPLEY Vault</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Your Vault – OPLEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      background: #000;
-      color: #fff;
+      background-color: #000;
+      color: white;
       font-family: sans-serif;
-      padding: 20px;
+      margin: 0;
+      padding: 1rem 1rem 100px;
+    }
+    h2 {
+      text-align: center;
+      font-size: 1rem;
+      opacity: 0.7;
+      margin-top: 2rem;
+      letter-spacing: 1px;
+    }
+    .drop-module {
+      background-color: #111;
+      border-radius: 16px;
+      padding: 1rem;
+      max-width: 380px;
+      margin: 2rem auto;
       text-align: center;
     }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 20px;
-    }
-    .drop-card {
-      background: #111;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 15px rgba(255,79,0,0.3);
-    }
-    img.cover {
+    .drop-preview {
       width: 100%;
-      max-width: 280px;
-      border-radius: 12px;
-      margin-bottom: 10px;
+      padding-top: 100%;
+      border-radius: 20px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      margin-bottom: 1rem;
     }
-    audio {
-      width: 100%;
-      max-width: 300px;
-      margin-top: 10px;
+    .drop-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+    .drop-artist {
+      font-size: 0.85rem;
+      font-weight: bold;
+      opacity: 0.8;
+      margin-bottom: 0.3rem;
+    }
+    .drop-meta {
+      font-size: 0.9rem;
+      margin: 0.3rem 0;
+    }
+    .italic {
+      font-style: italic;
+      font-size: 0.85rem;
+      color: #ccc;
+      margin: 0.5rem 0 1rem;
+    }
+    .unlocked-label {
+      color: #4caf50;
+      font-size: 1rem;
+      margin: 0.75rem 0 0.25rem;
+    }
+    .drop-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .drop-actions button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #000;
+      border-top: 1px solid #444;
+      display: flex;
+      justify-content: space-around;
+      padding: 1.2rem 0;
+      font-size: 1.2rem;
+      z-index: 9999;
+    }
+    .nav button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
     }
   </style>
 </head>
 <body>
-  <h1>🎧 Your Unlocked Music</h1>
-  <div id="vaultContainer">Loading...</div>
+
+  <h2>YOUR VAULT</h2>
+  <div id="vault-drops"></div>
+
+  <div class="nav">
+    <button onclick="location.href='step2.html'">🔥 Drops</button>
+    <button onclick="location.href='step3.html'">▶ Now Playing</button>
+    <button onclick="location.href='vault.html'">📁 Vault</button>
+    <button onclick="javascript:void(0)">👤 Profile</button>
+  </div>
 
   <script>
-    async function loadVault() {
-      const phone = localStorage.getItem("phone");
-      if (!phone) {
-        document.getElementById("vaultContainer").innerText = "No phone found. Please go back.";
-        return;
+    const drops = {
+      "SONG1": {
+        title: "SONG1",
+        artist: "WHOSDIZZ",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
+        releaseDate: "2025-07-10T00:00:00Z"
+      },
+      "Grande Eres Señor": {
+        title: "Grande Eres Señor",
+        artist: "LOVE",
+        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
+        releaseDate: "2025-07-10T00:00:00Z"
       }
+    };
 
-      try {
-        const res = await fetch("https://opley-minting-api.vercel.app/api/vault", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone })
-        });
-        const drops = await res.json();
-
-        if (!Array.isArray(drops) || drops.length === 0) {
-          document.getElementById("vaultContainer").innerText = "You haven’t unlocked anything yet.";
-          return;
-        }
-
-        const container = document.getElementById("vaultContainer");
-        container.innerHTML = "";
-
-        drops.forEach(drop => {
-          const div = document.createElement("div");
-          div.className = "drop-card";
-
-          div.innerHTML = `
-            <h3>${drop.metadata.name} – ${drop.metadata.artist}</h3>
-            <img class="cover" src="${drop.metadata.cover.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')}" alt="Cover">
-            <audio controls controlsList="nodownload">
-              <source src="${drop.metadata.audio.mobile.replace('ipfs://', 'https://gateway.pinata.cloud/ipfs/')}" type="audio/mpeg">
-              Your browser does not support audio.
-            </audio>
-          `;
-
-          container.appendChild(div);
-        });
-
-      } catch (err) {
-        console.error("Error loading vault:", err);
-        document.getElementById("vaultContainer").innerText = "Error loading your music.";
-      }
+    function safeId(key) {
+      return key.replace(/[^a-zA-Z0-9]/g, "-");
     }
 
-    loadVault();
+    const vaultContainer = document.getElementById("vault-drops");
+
+    Object.keys(drops).forEach((key) => renderVaultCard(key));
+
+    async function renderVaultCard(key) {
+      const d = drops[key];
+      const id = safeId(key);
+
+      const phone = localStorage.getItem("phone");
+      if (!phone) return location.href = "step_1_phone_entry.html";
+
+      const res = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, drop: key })
+      });
+
+      const result = await res.json();
+      if (!result.accessGranted) return;
+
+      const module = document.createElement("div");
+      module.className = "drop-module";
+      module.id = `vault-${id}`;
+      module.innerHTML = `
+        <div class="drop-preview" style="background-image: url('${d.image}')"></div>
+        <div class="drop-title">${d.title}</div>
+        <div class="drop-artist">${d.artist}</div>
+        <div class="drop-meta">Release Date: ${new Date(d.releaseDate).toDateString()}</div>
+        <div class="italic">“This song is not on Spotify or Apple Music.”</div>
+        <div class="unlocked-label">🎉 Unlocked!</div>
+        <div class="drop-actions">
+          <button onclick="goToPlayer('${key}')">▶ Play Now</button>
+        </div>
+      `;
+
+      vaultContainer.appendChild(module);
+    }
+
+    function goToPlayer(key) {
+      window.location.href = `step3.html?drop=${encodeURIComponent(key)}`;
+    }
   </script>
 </body>
 </html>
