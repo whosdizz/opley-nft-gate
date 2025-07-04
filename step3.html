@@ -14,7 +14,6 @@
       height: 100%;
       overflow: hidden;
     }
-
     .player-screen {
       display: flex;
       flex-direction: column;
@@ -26,7 +25,6 @@
       background-repeat: no-repeat;
       position: relative;
     }
-
     .overlay {
       width: 100%;
       padding: 1.5rem;
@@ -34,23 +32,19 @@
       position: absolute;
       bottom: 3.5rem;
     }
-
     .track-info {
       text-align: center;
       margin-bottom: 1rem;
     }
-
     .track-title {
       font-size: 1.2rem;
       font-weight: bold;
     }
-
     .track-artist {
       font-size: 0.95rem;
       opacity: 0.7;
       margin-top: 0.2rem;
     }
-
     .controls {
       display: flex;
       justify-content: center;
@@ -58,7 +52,6 @@
       gap: 2rem;
       margin-top: 1.5rem;
     }
-
     .controls button {
       background: none;
       border: none;
@@ -66,7 +59,6 @@
       font-size: 2rem;
       cursor: pointer;
     }
-
     .nav {
       position: fixed;
       bottom: 0;
@@ -79,14 +71,12 @@
       padding: 0.75rem;
       font-size: 0.9rem;
     }
-
     .nav button {
       background: none;
       border: none;
       color: white;
       cursor: pointer;
     }
-
     audio {
       display: none;
     }
@@ -118,39 +108,94 @@
 
   <script>
     const drop = new URLSearchParams(window.location.search).get("drop");
+    const audio = document.getElementById("audio");
+    const playPauseBtn = document.getElementById("playPause");
 
     const drops = {
       "SONG1": {
         title: "SONG1",
         artist: "WHOSDIZZ",
         image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
-        audioDesktop: "https://gateway.pinata.cloud/ipfs/bafybeibcx4mpuw3mvj7v4dio7pgu7msevcxoijvrylxjsyvqagbj7rycnu",
-        audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u"
+        audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
+        audioEncrypted: "https://gateway.pinata.cloud/ipfs/bafybeibcx4mpuw3mvj7v4dio7pgu7msevcxoijvrylxjsyvqagbj7rycnu"
       },
       "Grande Eres Señor": {
         title: "Grande Eres Señor",
         artist: "LOVE",
         image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
-        audioDesktop: "https://gateway.pinata.cloud/ipfs/bafybeihoygfnw7xclbejbbllzrh2pqfohwh3xnmwkuk3eyjoaqozjkwjiq",
-        audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeiey6oomcyrqi7fo6ty6ynzfevdbqjjhadzcbnvio3yd2h6tkm23me"
+        audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeiey6oomcyrqi7fo6ty6ynzfevdbqjjhadzcbnvio3yd2h6tkm23me",
+        audioEncrypted: "https://gateway.pinata.cloud/ipfs/bafybeihoygfnw7xclbejbbllzrh2pqfohwh3xnmwkuk3eyjoaqozjkwjiq"
       }
     };
 
-    if (!drop || !drops[drop]) {
-      alert("Invalid or missing drop.");
-    } else {
-      const data = drops[drop];
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      const audioSrc = isMobile ? data.audioMobile : data.audioDesktop;
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
-      document.getElementById("trackTitle").innerText = data.title;
-      document.getElementById("trackArtist").innerText = data.artist;
-      document.getElementById("audio").src = audioSrc;
-      document.getElementById("player").style.backgroundImage = `url('${data.image}')`;
+    async function decryptAndPlay(encryptedUrl, keyHex, ivHex) {
+      const response = await fetch(encryptedUrl);
+      const encryptedData = await response.arrayBuffer();
+      const key = await crypto.subtle.importKey("raw", hexToBytes(keyHex), { name: "AES-CBC" }, false, ["decrypt"]);
+      const iv = hexToBytes(ivHex);
+      const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, key, encryptedData);
+      const blob = new Blob([decrypted], { type: "audio/mpeg" });
+      const url = URL.createObjectURL(blob);
+      audio.src = url;
+      audio.play();
+      playPauseBtn.innerText = "⏸️";
     }
 
-    const audio = document.getElementById("audio");
-    const playPauseBtn = document.getElementById("playPause");
+    function hexToBytes(hex) {
+      const bytes = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
+      }
+      return bytes;
+    }
+
+    async function startPlayer() {
+      if (!drop || !drops[drop]) {
+        alert("Invalid or missing drop.");
+        return;
+      }
+
+      const data = drops[drop];
+      document.getElementById("trackTitle").innerText = data.title;
+      document.getElementById("trackArtist").innerText = data.artist;
+      document.getElementById("player").style.backgroundImage = `url('${data.image}')`;
+
+      const phone = localStorage.getItem("phone");
+      if (!phone) return location.href = "step_1_phone_entry.html";
+
+      const accessRes = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, drop })
+      });
+
+      const access = await accessRes.json();
+      if (!access.accessGranted) {
+        alert("❌ You haven't unlocked this drop.");
+        return;
+      }
+
+      if (isMobile) {
+        audio.src = data.audioMobile;
+        audio.play();
+        playPauseBtn.innerText = "⏸️";
+      } else {
+        const keyRes = await fetch("https://opley-minting-api.vercel.app/api/get-key", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, drop })
+        });
+
+        const { key, iv } = await keyRes.json();
+        if (key && iv) {
+          decryptAndPlay(data.audioEncrypted, key, iv);
+        } else {
+          alert("❌ Could not get decryption key.");
+        }
+      }
+    }
 
     function togglePlay() {
       if (audio.paused) {
@@ -169,6 +214,8 @@
     function forward() {
       audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
     }
+
+    startPlayer();
   </script>
 </body>
 </html>
