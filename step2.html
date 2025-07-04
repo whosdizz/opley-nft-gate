@@ -39,6 +39,12 @@
     .drop-title {
       font-size: 1.1rem;
       font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+    .drop-artist {
+      font-size: 0.85rem;
+      font-weight: bold;
+      opacity: 0.8;
       margin-bottom: 0.3rem;
     }
     .drop-meta {
@@ -126,20 +132,22 @@
 
   <div class="nav">
     <button onclick="location.href='step2.html'">🔥 Drops</button>
-    <button onclick="location.href='player.html'">▶ Now Playing</button>
+    <button onclick="location.href='step3.html'">▶ Now Playing</button>
     <button onclick="location.href='vault.html'">📁 Vault</button>
-    <button onclick="location.href='profile.html'">👤 Profile</button>
+    <button onclick="javascript:void(0)">👤 Profile</button>
   </div>
 
   <script>
     const drops = {
       "SONG1": {
         title: "SONG1 – EXCLUSIVE DROP",
+        artist: "WHOSDIZZ",
         image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
         releaseDate: "2025-07-10T00:00:00Z"
       },
       "Grande Eres Señor": {
         title: "Grande Eres Señor – EXCLUSIVE DROP",
+        artist: "LOVE",
         image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
         releaseDate: "2025-07-10T00:00:00Z"
       }
@@ -167,6 +175,7 @@
       module.innerHTML = `
         <div class="drop-preview" style="background-image: url('${d.image}')"></div>
         <div class="drop-title">${d.title}</div>
+        <div class="drop-artist">${d.artist}</div>
         <div class="drop-meta">Release Date: ${release.toDateString()}</div>
         <div class="drop-meta">${countdown}</div>
         <div class="italic">“This song is not on Spotify or Apple Music.”</div>
@@ -220,10 +229,10 @@
 
         const result = await res.json();
         if (res.ok && result.tokenId) {
-          btn.style.display = "none";
+          const module = document.getElementById(`card-${dropKey}`);
+          document.getElementById(`unlockBtn-${dropKey}`).style.display = "none";
           document.getElementById(`unlocked-${dropKey}`).style.display = "block";
           document.getElementById(`actions-${dropKey}`).style.display = "flex";
-          const module = document.getElementById(`card-${dropKey}`);
           unlockedContainer.appendChild(module);
         } else {
           throw new Error(result.error || "Unknown unlock error.");
