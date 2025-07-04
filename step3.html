@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>OPLEY Player Debug</title>
+  <title>OPLEY Player Debug Fixed</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body, html {
@@ -135,17 +135,29 @@
         console.log("🔐 Fetching encrypted audio:", encryptedUrl);
         const response = await fetch(encryptedUrl);
         const encryptedData = await response.arrayBuffer();
+
         const key = await crypto.subtle.importKey("raw", hexToBytes(keyHex), { name: "AES-CBC" }, false, ["decrypt"]);
         const iv = hexToBytes(ivHex);
         const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, key, encryptedData);
+
         const blob = new Blob([decrypted], { type: "audio/mpeg" });
+        console.log("🎧 Blob type:", blob.type);
+
         const url = URL.createObjectURL(blob);
-        console.log("🎧 Decrypted audio blob created:", url);
         audio.src = url;
-        audio.play();
-        playPauseBtn.innerText = "⏸️";
+
+        // Try autoplay and show fallback if blocked
+        try {
+          await audio.play();
+          playPauseBtn.innerText = "⏸️";
+        } catch (err) {
+          console.warn("⛔ Autoplay blocked:", err);
+          playPauseBtn.innerText = "▶️";
+        }
+
       } catch (err) {
-        console.error("❌ Decryption/playback failed:", err);
+        console.error("❌ Decryption or playback failed:", err);
+        alert("Playback failed. Check console logs.");
       }
     }
 
@@ -158,14 +170,13 @@
     }
 
     async function startPlayer() {
-      console.log("📥 DROP PARAM:", drop);
       if (!drop || !drops[drop]) {
         alert("Invalid or missing drop.");
         return;
       }
 
       const data = drops[drop];
-      console.log("📦 DROP DATA:", data);
+      console.log("🎶 Now Playing:", data.title);
       document.getElementById("trackTitle").innerText = data.title;
       document.getElementById("trackArtist").innerText = data.artist;
       document.getElementById("player").style.backgroundImage = `url('${data.image}')`;
@@ -180,7 +191,7 @@
       });
 
       const access = await accessRes.json();
-      console.log("🔓 ACCESS RESULT:", access);
+      console.log("🔓 Access Granted:", access.accessGranted);
 
       if (!access.accessGranted) {
         alert("❌ You haven't unlocked this drop.");
@@ -188,10 +199,13 @@
       }
 
       if (isMobile) {
-        console.log("📱 Mobile playback:", data.audioMobile);
         audio.src = data.audioMobile;
-        audio.play();
-        playPauseBtn.innerText = "⏸️";
+        try {
+          await audio.play();
+          playPauseBtn.innerText = "⏸️";
+        } catch (err) {
+          console.warn("⛔ Mobile autoplay blocked:", err);
+        }
       } else {
         const keyRes = await fetch("https://opley-minting-api.vercel.app/api/get-key", {
           method: "POST",
@@ -200,8 +214,6 @@
         });
 
         const { key, iv } = await keyRes.json();
-        console.log("🧩 KEY/IV:", key, iv);
-
         if (key && iv) {
           decryptAndPlay(data.audioEncrypted, key, iv);
         } else {
