@@ -106,30 +106,19 @@
   </div>
 
   <script>
-    const drop = new URLSearchParams(window.location.search).get("drop");
+    const drop = "SONG1";
     const dropData = {
       "SONG1": {
         title: "SONG1 by WHOSDIZZ",
         image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
         preview: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
         tokenURI: "ipfs://bafkreigryn3raal2ri3om2w72ajitkdglkmhfydvuekhubvxzspod2nj74"
-      },
-      "Grande Eres Señor": {
-        title: "Grande Eres Señor by LOVE",
-        image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
-        preview: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u", // Replace with correct preview
-        tokenURI: "ipfs://bafkreibvto2gelqwvdgkvrar43462e23wm5rmlcp2mb2caabdb7bwjfupm"
       }
     };
 
     let currentPreview = "";
 
     async function checkAccess() {
-      if (!drop || !dropData[drop]) {
-        document.getElementById("status").innerText = "❌ Invalid or missing drop.";
-        return;
-      }
-
       const phone = localStorage.getItem("phone");
       if (!phone) return location.href = "step_1_phone_entry.html";
 
