@@ -119,7 +119,8 @@
         artist: "WHOSDIZZ",
         image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
         audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
-        audioEncrypted: "https://gateway.pinata.cloud/ipfs/bafybeibcx4mpuw3mvj7v4dio7pgu7msevcxoijvrylxjsyvqagbj7rycnu",
+        audioEncryptedFallback: "https://gateway.pinata.cloud/ipfs/bafybeibcx4mpuw3mvj7v4dio7pgu7msevcxoijvrylxjsyvqagbj7rycnu",
+        audioEncrypted: "https://cloudflare-ipfs.com/ipfs/bafybeibcx4mpuw3mvj7v4dio7pgu7msevcxoijvrylxjsyvqagbj7rycnu",
         key: "a04d767ac05ddc9df993e1baa5dc58f3",
         iv: "2e3a81e1b826b2de330616aa6e8884b6"
       },
@@ -134,9 +135,14 @@
       }
     };
 
-    async function decryptAndPlay(encryptedUrl, keyHex, ivHex) {
+    async function decryptAndPlay(encryptedUrl, fallbackUrl, keyHex, ivHex) {
       try {
-        const response = await fetch(encryptedUrl);
+        let response = await fetch(encryptedUrl);
+        if (!response.ok) {
+          console.warn("⚠️ Primary gateway failed, using fallback.");
+          response = await fetch(fallbackUrl);
+        }
+
         const encryptedData = await response.arrayBuffer();
         const key = await crypto.subtle.importKey("raw", hexToBytes(keyHex), { name: "AES-CBC" }, false, ["decrypt"]);
         const iv = hexToBytes(ivHex);
@@ -144,7 +150,7 @@
         const blob = new Blob([decrypted], { type: "audio/mpeg" });
         const url = URL.createObjectURL(blob);
         audio.src = url;
-        audio.play();
+        await audio.play();
         playPauseBtn.innerText = "⏸️";
       } catch (err) {
         console.error("❌ Decryption or playback failed:", err);
@@ -198,7 +204,7 @@
           console.warn("⛔ Mobile autoplay blocked:", err);
         }
       } else {
-        decryptAndPlay(data.audioEncrypted, data.key, data.iv);
+        decryptAndPlay(data.audioEncrypted, data.audioEncryptedFallback || data.audioEncrypted, data.key, data.iv);
       }
     }
 
