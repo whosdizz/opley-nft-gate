@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>OPLEY Player Debug Fixed</title>
+  <title>OPLEY Player</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body, html {
@@ -111,53 +111,44 @@
     const audio = document.getElementById("audio");
     const playPauseBtn = document.getElementById("playPause");
 
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     const drops = {
       "SONG1": {
         title: "SONG1",
         artist: "WHOSDIZZ",
         image: "https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
         audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
-        audioEncrypted: "https://gateway.pinata.cloud/ipfs/bafybeibcx4mpuw3mvj7v4dio7pgu7msevcxoijvrylxjsyvqagbj7rycnu"
+        audioEncrypted: "https://gateway.pinata.cloud/ipfs/bafybeibcx4mpuw3mvj7v4dio7pgu7msevcxoijvrylxjsyvqagbj7rycnu",
+        key: "a04d767ac05ddc9df993e1baa5dc58f3",
+        iv: "2e3a81e1b826b2de330616aa6e8884b6"
       },
       "Grande Eres Señor": {
         title: "Grande Eres Señor",
         artist: "LOVE",
         image: "https://gateway.pinata.cloud/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
         audioMobile: "https://gateway.pinata.cloud/ipfs/bafybeiey6oomcyrqi7fo6ty6ynzfevdbqjjhadzcbnvio3yd2h6tkm23me",
-        audioEncrypted: "https://gateway.pinata.cloud/ipfs/bafybeihoygfnw7xclbejbbllzrh2pqfohwh3xnmwkuk3eyjoaqozjkwjiq"
+        audioEncrypted: "https://gateway.pinata.cloud/ipfs/bafybeifs6pqmuqq5suksrnwrh24ksjzx4l7dqeigk2l5zeqfvmizf7agqe",
+        key: "39b04bc2cd217d0b23817971089244f9",
+        iv: "f3aee0ba22e269b25b99e086b27dcd27"
       }
     };
 
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
     async function decryptAndPlay(encryptedUrl, keyHex, ivHex) {
       try {
-        console.log("🔐 Fetching encrypted audio:", encryptedUrl);
         const response = await fetch(encryptedUrl);
         const encryptedData = await response.arrayBuffer();
-
         const key = await crypto.subtle.importKey("raw", hexToBytes(keyHex), { name: "AES-CBC" }, false, ["decrypt"]);
         const iv = hexToBytes(ivHex);
         const decrypted = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, key, encryptedData);
-
         const blob = new Blob([decrypted], { type: "audio/mpeg" });
-        console.log("🎧 Blob type:", blob.type);
-
         const url = URL.createObjectURL(blob);
         audio.src = url;
-
-        // Try autoplay and show fallback if blocked
-        try {
-          await audio.play();
-          playPauseBtn.innerText = "⏸️";
-        } catch (err) {
-          console.warn("⛔ Autoplay blocked:", err);
-          playPauseBtn.innerText = "▶️";
-        }
-
+        audio.play();
+        playPauseBtn.innerText = "⏸️";
       } catch (err) {
         console.error("❌ Decryption or playback failed:", err);
-        alert("Playback failed. Check console logs.");
+        alert("Playback failed.");
       }
     }
 
@@ -167,59 +158,6 @@
         bytes[i] = parseInt(hex.substr(i * 2, 2), 16);
       }
       return bytes;
-    }
-
-    async function startPlayer() {
-      if (!drop || !drops[drop]) {
-        alert("Invalid or missing drop.");
-        return;
-      }
-
-      const data = drops[drop];
-      console.log("🎶 Now Playing:", data.title);
-      document.getElementById("trackTitle").innerText = data.title;
-      document.getElementById("trackArtist").innerText = data.artist;
-      document.getElementById("player").style.backgroundImage = `url('${data.image}')`;
-
-      const phone = localStorage.getItem("phone");
-      if (!phone) return location.href = "step_1_phone_entry.html";
-
-      const accessRes = await fetch("https://opley-minting-api.vercel.app/api/check-access", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, drop })
-      });
-
-      const access = await accessRes.json();
-      console.log("🔓 Access Granted:", access.accessGranted);
-
-      if (!access.accessGranted) {
-        alert("❌ You haven't unlocked this drop.");
-        return;
-      }
-
-      if (isMobile) {
-        audio.src = data.audioMobile;
-        try {
-          await audio.play();
-          playPauseBtn.innerText = "⏸️";
-        } catch (err) {
-          console.warn("⛔ Mobile autoplay blocked:", err);
-        }
-      } else {
-        const keyRes = await fetch("https://opley-minting-api.vercel.app/api/get-key", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone, drop })
-        });
-
-        const { key, iv } = await keyRes.json();
-        if (key && iv) {
-          decryptAndPlay(data.audioEncrypted, key, iv);
-        } else {
-          alert("❌ Could not get decryption key.");
-        }
-      }
     }
 
     function togglePlay() {
@@ -238,6 +176,30 @@
 
     function forward() {
       audio.currentTime = Math.min(audio.duration, audio.currentTime + 10);
+    }
+
+    async function startPlayer() {
+      if (!drop || !drops[drop]) {
+        alert("Invalid or missing drop.");
+        return;
+      }
+
+      const data = drops[drop];
+      document.getElementById("trackTitle").innerText = data.title;
+      document.getElementById("trackArtist").innerText = data.artist;
+      document.getElementById("player").style.backgroundImage = `url('${data.image}')`;
+
+      if (isMobile) {
+        audio.src = data.audioMobile;
+        try {
+          await audio.play();
+          playPauseBtn.innerText = "⏸️";
+        } catch (err) {
+          console.warn("⛔ Mobile autoplay blocked:", err);
+        }
+      } else {
+        decryptAndPlay(data.audioEncrypted, data.key, data.iv);
+      }
     }
 
     startPlayer();
