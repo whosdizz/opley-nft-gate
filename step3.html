@@ -119,9 +119,7 @@
         image: "https://ipfs.io/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i",
         audioMobile: "https://ipfs.io/ipfs/bafybeigccada2sxa5fcyx323eb6yxynebffnfwt4rijyzqbffkvvdwhi3u",
         audioEncrypted: "https://ipfs.io/ipfs/bafybeiadwkpcmclwgvhg2edh5tr5nblvr3yydmqityeavcfwrmgjlvicni",
-        audioEncryptedFallback: "https://gateway.pinata.cloud/ipfs/bafybeiadwkpcmclwgvhg2edh5tr5nblvr3yydmqityeavcfwrmgjlvicni",
-        key: "fab24c81750fe467059b7e09b53efc00",
-        iv: "a86338e37baa4f3f4ca21bfc22baebe9"
+        audioEncryptedFallback: "https://gateway.pinata.cloud/ipfs/bafybeiadwkpcmclwgvhg2edh5tr5nblvr3yydmqityeavcfwrmgjlvicni"
       },
       "Grande Eres Señor": {
         title: "Grande Eres Señor",
@@ -129,9 +127,7 @@
         image: "https://ipfs.io/ipfs/bafybeifcncg5vhoms72qqymzuyy7veybeh5gxbi3ksnjvpp2bq3cbzgfzq",
         audioMobile: "https://ipfs.io/ipfs/bafybeiey6oomcyrqi7fo6ty6ynzfevdbqjjhadzcbnvio3yd2h6tkm23me",
         audioEncrypted: "https://ipfs.io/ipfs/bafybeifs6pqmuqq5suksrnwrh24ksjzx4l7dqeigk2l5zeqfvmizf7agqe",
-        audioEncryptedFallback: "https://gateway.pinata.cloud/ipfs/bafybeifs6pqmuqq5suksrnwrh24ksjzx4l7dqeigk2l5zeqfvmizf7agqe",
-        key: "39b04bc2cd217d0b23817971089244f9",
-        iv: "f3aee0ba22e269b25b99e086b27dcd27"
+        audioEncryptedFallback: "https://gateway.pinata.cloud/ipfs/bafybeifs6pqmuqq5suksrnwrh24ksjzx4l7dqeigk2l5zeqfvmizf7agqe"
       }
     };
 
@@ -204,7 +200,26 @@
           console.warn("⛔ Mobile autoplay blocked:", err);
         }
       } else {
-        decryptAndPlay(data.audioEncrypted, data.audioEncryptedFallback, data.key, data.iv);
+        const phone = localStorage.getItem("phone");
+        if (!phone) return alert("Phone not registered.");
+
+        try {
+          const res = await fetch("https://opley-minting-api.vercel.app/api/get-key", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone, drop })
+          });
+
+          if (!res.ok) {
+            alert("Access denied or drop not unlocked.");
+            return;
+          }
+
+          const { key, iv } = await res.json();
+          await decryptAndPlay(data.audioEncrypted, data.audioEncryptedFallback, key, iv);
+        } catch (err) {
+          console.error("❌ Error fetching decryption keys:", err);
+        }
       }
     }
 
