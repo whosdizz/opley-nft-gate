@@ -110,7 +110,8 @@
         .then(res => res.text())
         .then(html => {
           document.getElementById("mainView").innerHTML = html;
-          // Wait a bit, then call global functions like startPlayer if defined
+
+          // Let the view initialize if needed
           setTimeout(() => {
             if (viewName === 'nowPlaying' && typeof startPlayer === 'function') {
               startPlayer();
@@ -125,7 +126,7 @@
 
     const phone = localStorage.getItem("phone");
     if (!phone) {
-      loadView("step1_phone_entry");
+      loadView("step_1_phone_entry"); // ✅ Corrected file name
     } else {
       miniPlayer.style.display = "flex";
       nav.style.display = "flex";
