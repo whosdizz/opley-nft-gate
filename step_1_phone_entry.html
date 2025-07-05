@@ -1,97 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Enter Phone – OPLEY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OPLEY | Unlock Exclusive Music</title>
   <style>
     body {
+      margin: 0;
       background-color: #000;
-      color: white;
-      font-family: sans-serif;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
       text-align: center;
-      padding: 60px 30px;
-      animation: fadeIn 1s ease-in;
+      padding: 40px 20px;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .logo {
-      width: 180px;
-      margin: 0 auto 40px;
-      animation: fadeIn 1.2s ease-in-out;
-    }
-    .logo img {
-      width: 100%;
+    img.logo {
+      width: 120px;
+      margin: 40px auto 30px;
     }
     h1 {
-      font-size: 1.2rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 1rem;
-      opacity: 0.8;
+      font-size: 2.2em;
+      margin-bottom: 0.3em;
+    }
+    h2 {
+      font-size: 2.2em;
+      margin-top: 0;
+    }
+    p.sub {
+      font-size: 1em;
+      color: #aaa;
+      margin-bottom: 40px;
     }
     input {
+      font-size: 1.1em;
       padding: 14px;
-      font-size: 16px;
+      width: 100%;
+      max-width: 300px;
       border-radius: 10px;
       border: none;
-      width: 100%;
-      max-width: 320px;
+      outline: none;
       margin-bottom: 20px;
-      text-align: center;
     }
     button {
+      font-size: 1.1em;
       background-color: #ff4f00;
       color: white;
-      font-size: 16px;
-      padding: 14px 32px;
       border: none;
+      padding: 14px 28px;
       border-radius: 10px;
       cursor: pointer;
       transition: background 0.3s;
     }
     button:hover {
-      background-color: #e04800;
+      background-color: #e54400;
     }
-    #status {
-      margin-top: 20px;
-      font-size: 0.9rem;
-      opacity: 0.6;
+    #error {
+      color: red;
+      margin-top: 10px;
+    }
+    a.learn {
+      color: #999;
+      text-decoration: underline;
+      margin-top: 30px;
+      display: inline-block;
+      font-size: 0.9em;
     }
   </style>
 </head>
 <body>
-  <div class="logo">
-    <img src="https://gateway.pinata.cloud/ipfs/bafybeibsdx27t2ewgdeyjswlwln6ynpi4bdgbcqqhi7x75yf3kjgmd6n5e" alt="OPLEY logo" />
-  </div>
-  <h1>Enter your phone number to continue</h1>
-  <input id="phoneInput" type="tel" placeholder="Your phone number" />
+  <img class="logo" src="https://gateway.pinata.cloud/ipfs/bafkreib5q2yvzp5lftl3gyn6bsjq3vqx6ahaxqwntrss4py7dlisbfgwae" alt="OPLEY Logo" />
+  
+  <h1>Unlock</h1>
+  <h2>Exclusive Music</h2>
+  <p class="sub">Collect limited edition tracks and digital experiences.</p>
+
+  <input type="tel" id="phone" placeholder="Enter your phone number" autofocus />
   <br />
-  <button onclick="registerPhone()">Continue</button>
-  <p id="status"></p>
+  <button onclick="submitPhone()">Get Started</button>
+  <div id="error"></div>
 
   <script>
-    function isValidPhone(phone) {
-      return /^\d{10,}$/.test(phone);
-    }
+    async function submitPhone() {
+      const phone = document.getElementById("phone").value.trim();
+      const errorDiv = document.getElementById("error");
 
-    async function registerPhone() {
-      const phone = document.getElementById("phoneInput").value.trim();
-      const status = document.getElementById("status");
-
-      if (!phone) {
-        status.innerText = "⚠️ Please enter your phone number.";
+      if (!phone || phone.length < 7) {
+        errorDiv.innerText = "Please enter a valid phone number.";
         return;
       }
 
-      if (!isValidPhone(phone)) {
-        status.innerText = "⚠️ Phone number must be at least 10 digits.";
-        return;
-      }
-
-      status.innerText = "⏳ Registering...";
+      errorDiv.innerText = "⏳ Registering...";
 
       try {
         const res = await fetch("https://opley-minting-api.vercel.app/api/register", {
@@ -106,10 +103,10 @@
           localStorage.setItem("phone", phone);
           window.location.href = "step2.html";
         } else {
-          status.innerText = "❌ Error: " + (result.error || "Something went wrong");
+          errorDiv.innerText = "❌ " + (result.error || "Something went wrong.");
         }
       } catch (err) {
-        status.innerText = "❌ Network error. Please try again.";
+        errorDiv.innerText = "❌ Network error. Please try again.";
       }
     }
   </script>
