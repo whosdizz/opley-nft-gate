@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'self'" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OPLEY</title>
   <style>
@@ -111,7 +112,6 @@
         .then(html => {
           document.getElementById("mainView").innerHTML = html;
 
-          // Let the view initialize if needed
           setTimeout(() => {
             if (viewName === 'nowPlaying' && typeof startPlayer === 'function') {
               startPlayer();
@@ -126,7 +126,7 @@
 
     const phone = localStorage.getItem("phone");
     if (!phone) {
-      loadView("step_1_phone_entry"); // ✅ Corrected file name
+      loadView("step_1_phone_entry");
     } else {
       miniPlayer.style.display = "flex";
       nav.style.display = "flex";
