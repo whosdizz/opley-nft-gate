@@ -2,57 +2,92 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Register – OPLEY</title>
+  <title>Enter Phone – OPLEY</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      background: #000;
+      background-color: #000;
       color: white;
       font-family: sans-serif;
       text-align: center;
-      padding: 50px;
+      padding: 60px 30px;
+      animation: fadeIn 1s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .logo {
+      width: 180px;
+      margin: 0 auto 40px;
+      animation: fadeIn 1.2s ease-in-out;
+    }
+    .logo img {
+      width: 100%;
+    }
+    h1 {
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      opacity: 0.8;
     }
     input {
-      font-size: 18px;
-      padding: 12px;
-      width: 80%;
-      max-width: 300px;
+      padding: 14px;
+      font-size: 16px;
       border-radius: 10px;
-      border: 1px solid #ccc;
+      border: none;
+      width: 100%;
+      max-width: 320px;
       margin-bottom: 20px;
+      text-align: center;
     }
     button {
       background-color: #ff4f00;
       color: white;
       font-size: 16px;
-      padding: 12px 24px;
+      padding: 14px 32px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #e04800;
     }
     #status {
       margin-top: 20px;
-      font-size: 14px;
-      color: #aaa;
+      font-size: 0.9rem;
+      opacity: 0.6;
     }
   </style>
 </head>
 <body>
-  <h1>🔓 Enter Your Phone</h1>
-  <p>This will unlock access to exclusive drops</p>
-
-  <input id="phoneInput" type="tel" placeholder="Enter your phone number" />
+  <div class="logo">
+    <img src="https://gateway.pinata.cloud/ipfs/bafybeibsdx27t2ewgdeyjswlwln6ynpi4bdgbcqqhi7x75yf3kjgmd6n5e" alt="OPLEY logo" />
+  </div>
+  <h1>Enter your phone number to continue</h1>
+  <input id="phoneInput" type="tel" placeholder="Your phone number" />
   <br />
   <button onclick="registerPhone()">Continue</button>
   <p id="status"></p>
 
   <script>
+    function isValidPhone(phone) {
+      return /^\d{10,}$/.test(phone);
+    }
+
     async function registerPhone() {
       const phone = document.getElementById("phoneInput").value.trim();
       const status = document.getElementById("status");
 
       if (!phone) {
-        status.innerText = "⚠️ Please enter a phone number.";
+        status.innerText = "⚠️ Please enter your phone number.";
+        return;
+      }
+
+      if (!isValidPhone(phone)) {
+        status.innerText = "⚠️ Phone number must be at least 10 digits.";
         return;
       }
 
@@ -74,7 +109,7 @@
           status.innerText = "❌ Error: " + (result.error || "Something went wrong");
         }
       } catch (err) {
-        status.innerText = "❌ Network error. Try again.";
+        status.innerText = "❌ Network error. Please try again.";
       }
     }
   </script>
