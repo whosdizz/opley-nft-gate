@@ -113,17 +113,4 @@
           if (viewName === 'nowPlaying' && typeof startPlayer === 'function') {
             startPlayer();
           }
-        });
-    }
-
-    const phone = localStorage.getItem("phone");
-    if (!phone) {
-      loadView("step1"); // No mini player or nav
-    } else {
-      miniPlayer.style.display = "flex";
-      nav.style.display = "flex";
-      loadView("drops");
-    }
-  </script>
-</body>
-</html>
+        })
