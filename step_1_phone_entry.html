@@ -1,29 +1,97 @@
-<img class="logo" src="https://gateway.pinata.cloud/ipfs/bafkreib5q2yvzp5lftl3gyn6bsjq3vqx6ahaxqwntrss4py7dlisbfgwae" alt="OPLEY Logo" style="width: 120px; margin: 40px auto 30px; display: block;" />
-
-<h1 style="font-size: 2.2em; margin-bottom: 0.3em;">Unlock</h1>
-<h2 style="font-size: 2.2em; margin-top: 0;">Exclusive Music</h2>
-<p class="sub" style="font-size: 1em; color: #aaa; margin-bottom: 40px;">Collect limited edition tracks and digital experiences.</p>
-
-<div style="text-align: center;">
-  <input type="tel" id="phone" placeholder="Enter your phone number" autofocus
-    style="font-size: 1.1em; padding: 14px; width: 100%; max-width: 300px; border-radius: 10px; border: none; outline: none; margin-bottom: 20px;" />
-  <br />
-  <button onclick="submitPhone()" style="font-size: 1.1em; background-color: #ff4f00; color: white; border: none; padding: 14px 28px; border-radius: 10px; cursor: pointer;">Get Started</button>
-  <div id="error" style="color: red; margin-top: 10px;"></div>
-</div>
-
-<script>
-  function submitPhone() {
-    const phone = document.getElementById("phone").value.trim();
-    if (!phone || phone.length < 7) {
-      document.getElementById("error").innerText = "Please enter a valid phone number.";
-      return;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OPLEY | Unlock Exclusive Music</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+      padding: 40px 20px;
     }
+    img.logo {
+      width: 120px;
+      margin: 40px auto 30px;
+    }
+    h1 {
+      font-size: 2.2em;
+      margin-bottom: 0.3em;
+    }
+    h2 {
+      font-size: 2.2em;
+      margin-top: 0;
+    }
+    p.sub {
+      font-size: 1em;
+      color: #aaa;
+      margin-bottom: 40px;
+    }
+    input {
+      font-size: 1.1em;
+      padding: 14px;
+      width: 100%;
+      max-width: 300px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      margin-bottom: 20px;
+    }
+    button {
+      font-size: 1.1em;
+      background-color: #ff4f00;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #e54400;
+    }
+    #error {
+      color: red;
+      margin-top: 10px;
+    }
+    a.learn {
+      color: #999;
+      text-decoration: underline;
+      margin-top: 30px;
+      display: inline-block;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <img class="logo" src="https://gateway.pinata.cloud/ipfs/bafkreib5q2yvzp5lftl3gyn6bsjq3vqx6ahaxqwntrss4py7dlisbfgwae" alt="OPLEY Logo" />
+  
+  <h1>Unlock</h1>
+  <h2>Exclusive Music</h2>
+  <p class="sub">Collect limited edition tracks and digital experiences.</p>
 
-    localStorage.setItem("phone", phone);
-    document.getElementById("error").innerText = "";
-    document.getElementById("miniPlayer").style.display = "flex";
-    document.querySelector(".nav").style.display = "flex";
-    loadView("drops");
-  }
-</script>
+  <input type="tel" id="phone" placeholder="Enter your phone number" autofocus />
+  <br />
+  <button onclick="submitPhone()">Get Started</button>
+  <div id="error"></div>
+
+  <script>
+    function submitPhone() {
+      const phone = document.getElementById("phone").value.trim();
+      if (!phone || phone.length < 7) {
+        document.getElementById("error").innerText = "Please enter a valid phone number.";
+        return;
+      }
+
+      localStorage.setItem("phone", phone);
+      document.getElementById("error").innerText = "";
+      setTimeout(() => {
+        window.location.href = "step2.html";
+      }, 500);
+    }
+  </script>
+</body>
+</html>
