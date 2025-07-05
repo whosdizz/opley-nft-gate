@@ -1,162 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>🎧 OPLEY: Premium Music Unlock</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OPLEY</title>
   <style>
-    body {
+    body, html {
       margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: white;
       font-family: sans-serif;
-      background: #0c0c0c;
-      color: #fff;
-      text-align: center;
-      padding: 40px;
+      height: 100%;
+      overflow: hidden;
     }
-    img.art {
-      width: 90%;
-      max-width: 300px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+    #miniPlayer {
+      position: fixed;
+      bottom: 4.2rem;
+      left: 0;
+      right: 0;
+      background: #111;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      border-top: 1px solid #333;
+      display: none;
     }
-    button {
-      background-color: #ff4f00;
-      color: #fff;
+    #miniPlayer div {
+      font-size: 0.9rem;
+    }
+    #mainView {
+      padding-bottom: 9rem;
+      height: 100%;
+      overflow-y: auto;
+    }
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #000;
+      border-top: 1px solid #444;
+      display: flex;
+      justify-content: space-around;
+      padding: 1.2rem 0;
+      font-size: 1.2rem;
+      z-index: 10;
+      display: none;
+    }
+    .nav button {
+      background: none;
       border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 10px;
+      color: white;
       cursor: pointer;
-      margin: 10px 5px;
+      font-weight: 600;
     }
-    #volumeSlider {
-      width: 150px;
-      margin-top: 10px;
-    }
-    #status {
-      margin-top: 20px;
-      color: #ccc;
-      white-space: pre-wrap;
+    audio {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h1>🎧 OPLEY: Where Music Is Premium Again</h1>
-  <p>Connect your account to unlock this exclusive song.</p>
-  <img class="art" src="https://gateway.pinata.cloud/ipfs/bafybeialjf2537kwjsohff4sg6fwfs56rzk4d3tfjd63jjijdiexi6mx7i" alt="Cover Art">
-  <br>
-  <button onclick="connectWallet()">🔓 Unlock Access</button>
-  <div id="status"></div>
-  <div id="player" style="display:none;">
-    <audio id="audioPlayer"></audio>
+  <div id="miniPlayer">
     <div>
-      <button id="playBtn" onclick="playAudio()" style="display:none;">▶️ Play Song</button>
-      <button id="stopBtn" onclick="stopAudio()" style="display:none;">⏹ Stop</button>
+      <div id="miniTrackTitle">Loading...</div>
+      <div id="miniTrackArtist" style="opacity: 0.7; font-size: 0.8rem;">...</div>
     </div>
-    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" style="display:none;" />
+    <div>
+      <button onclick="togglePlay()">▶️</button>
+      <button onclick="loadView('nowPlaying')">⤢</button>
+    </div>
+  </div>
+
+  <audio id="audio"></audio>
+
+  <div id="mainView"></div>
+
+  <div class="nav">
+    <button onclick="loadView('drops')">🔥 Drops</button>
+    <button onclick="loadView('nowPlaying')">▶ Now Playing</button>
+    <button onclick="loadView('vault')">📁 Vault</button>
+    <button onclick="loadView('profile')">👤 Profile</button>
   </div>
 
   <script>
-    const contractAddress = "0x54578D2f2B5B9F8d50CFE2fa1D6a02fa6Ef5c3BB";
-    const abi = [
-      "function balanceOf(address owner) external view returns (uint256)"
-    ];
-    const audioURL_desktop = "https://gateway.pinata.cloud/ipfs/bafybeiegqnz3tjtk5sq4jldtispzzugdc7l5b62pmg5k5gm3g6zlcapqge";
-    const encoded_mobile = "aHR0cHM6Ly9nYXRld2F5LnBpbmF0YS5jbG91ZC9pcGZzL2JhZnliZWlnY2NhZGEyc3hhNWZjeXgzMjNlYjZ5eW5lYmZmbmZ3dDRyaWp5enFiZmZrdnZkd2hpM3U=";
+    const audio = document.getElementById("audio");
+    const miniPlayer = document.getElementById("miniPlayer");
+    const nav = document.querySelector(".nav");
 
-    async function connectWallet() {
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile && (!window.ethereum || !window.ethereum.isMetaMask)) {
-        window.location.href = "https://metamask.app.link/dapp/whosdizz.github.io/playone-nft-gate/";
-        return;
-      }
-
-      if (!window.ethereum) {
-        alert("Please install MetaMask to unlock this track.");
-        return;
-      }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send("eth_requestAccounts", []);
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-
-      const contract = new ethers.Contract(contractAddress, abi, provider);
-      const balance = await contract.balanceOf(address);
-
-      if (balance.toNumber() > 0) {
-        document.getElementById("status").innerText = "✅ You've unlocked this track. Enjoy!";
-        document.getElementById("player").style.display = "block";
-
-        const playBtn = document.getElementById("playBtn");
-        const stopBtn = document.getElementById("stopBtn");
-        const volumeSlider = document.getElementById("volumeSlider");
-
-        if (isMobile) {
-          const decoded = atob(encoded_mobile);
-          document.getElementById("audioPlayer").src = decoded;
-          playBtn.style.display = stopBtn.style.display = volumeSlider.style.display = "inline-block";
-        } else {
-          document.getElementById("status").innerText += "\n🔐 Preparing your premium playback...";
-          fetch(audioURL_desktop)
-            .then(response => response.arrayBuffer())
-            .then(encrypted => decryptAudioBuffer(encrypted))
-            .then(blobUrl => {
-              document.getElementById("audioPlayer").src = blobUrl;
-              document.getElementById("status").innerText = "✅ Ready to play!";
-              playBtn.style.display = stopBtn.style.display = volumeSlider.style.display = "inline-block";
-            })
-            .catch(err => {
-              console.error(err);
-              document.getElementById("status").innerText = "❌ Error unlocking this song.";
-            });
-        }
+    function togglePlay() {
+      if (audio.paused) {
+        audio.play();
+        document.querySelector("#miniPlayer button").innerText = "⏸️";
       } else {
-        document.getElementById("status").innerText = "❌ You haven’t unlocked this track yet.";
+        audio.pause();
+        document.querySelector("#miniPlayer button").innerText = "▶️";
       }
     }
 
-    async function decryptAudioBuffer(encrypted) {
-      const keyHex = "a04d767ac05ddc9df993e1baa5dc58f3";
-      const ivHex = "2e3a81e1b826b2de330616aa6e8884b6";
-
-      const key = await crypto.subtle.importKey(
-        "raw",
-        new Uint8Array(keyHex.match(/.{1,2}/g).map(b => parseInt(b, 16))),
-        { name: "AES-CBC" },
-        false,
-        ["decrypt"]
-      );
-
-      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(b => parseInt(b, 16)));
-
-      const decrypted = await crypto.subtle.decrypt(
-        { name: "AES-CBC", iv },
-        key,
-        encrypted
-      );
-
-      const blob = new Blob([decrypted], { type: "audio/mpeg" });
-      return URL.createObjectURL(blob);
+    function setTrackMeta(title, artist) {
+      document.getElementById("miniTrackTitle").innerText = title;
+      document.getElementById("miniTrackArtist").innerText = artist;
     }
 
-    function playAudio() {
-      const audio = document.getElementById("audioPlayer");
-      audio.play();
+    function loadView(viewName) {
+      fetch(`${viewName}.html`)
+        .then(res => res.text())
+        .then(html => {
+          document.getElementById("mainView").innerHTML = html;
+          if (viewName === 'nowPlaying' && typeof startPlayer === 'function') {
+            startPlayer();
+          }
+        });
     }
 
-    function stopAudio() {
-      const audio = document.getElementById("audioPlayer");
-      audio.pause();
-      audio.currentTime = 0;
+    const phone = localStorage.getItem("phone");
+    if (!phone) {
+      loadView("step1"); // No mini player or nav
+    } else {
+      miniPlayer.style.display = "flex";
+      nav.style.display = "flex";
+      loadView("drops");
     }
-
-    document.getElementById("volumeSlider").addEventListener("input", function() {
-      const audio = document.getElementById("audioPlayer");
-      audio.volume = parseFloat(this.value);
-    });
   </script>
 </body>
 </html>
