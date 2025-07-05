@@ -110,7 +110,27 @@
         .then(res => res.text())
         .then(html => {
           document.getElementById("mainView").innerHTML = html;
-          if (viewName === 'nowPlaying' && typeof startPlayer === 'function') {
-            startPlayer();
-          }
+          // Wait a bit, then call global functions like startPlayer if defined
+          setTimeout(() => {
+            if (viewName === 'nowPlaying' && typeof startPlayer === 'function') {
+              startPlayer();
+            }
+          }, 100);
         })
+        .catch(err => {
+          document.getElementById("mainView").innerHTML = `<p style="color:red; padding:2rem;">Error loading ${viewName}.html</p>`;
+          console.error(err);
+        });
+    }
+
+    const phone = localStorage.getItem("phone");
+    if (!phone) {
+      loadView("step1_phone_entry");
+    } else {
+      miniPlayer.style.display = "flex";
+      nav.style.display = "flex";
+      loadView("drops");
+    }
+  </script>
+</body>
+</html>
