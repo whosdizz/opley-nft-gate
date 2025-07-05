@@ -13,6 +13,23 @@
       text-align: center;
       padding: 40px 20px;
     }
+
+    /* ✨ Animation Keyframes */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animated {
+      opacity: 0;
+      animation: fadeIn 1s ease forwards;
+    }
+
+    .animated:nth-child(1) { animation-delay: 0.2s; }
+    .animated:nth-child(2) { animation-delay: 0.4s; }
+    .animated:nth-child(3) { animation-delay: 0.6s; }
+    .animated:nth-child(4) { animation-delay: 0.8s; }
+
     img.logo {
       width: 120px;
       margin: 40px auto 30px;
@@ -39,6 +56,7 @@
       border: none;
       outline: none;
       margin-bottom: 20px;
+      text-align: center;
     }
     button {
       font-size: 1.1em;
@@ -67,16 +85,17 @@
   </style>
 </head>
 <body>
-  <img class="logo" src="https://gateway.pinata.cloud/ipfs/bafkreib5q2yvzp5lftl3gyn6bsjq3vqx6ahaxqwntrss4py7dlisbfgwae" alt="OPLEY Logo" />
-  
-  <h1>Unlock</h1>
-  <h2>Exclusive Music</h2>
-  <p class="sub">Collect limited edition tracks and digital experiences.</p>
+  <div class="animated"><img class="logo" src="https://gateway.pinata.cloud/ipfs/bafkreib5q2yvzp5lftl3gyn6bsjq3vqx6ahaxqwntrss4py7dlisbfgwae" alt="OPLEY Logo" /></div>
+  <div class="animated"><h1>Unlock</h1></div>
+  <div class="animated"><h2>Exclusive Music</h2></div>
+  <div class="animated"><p class="sub">Collect limited edition tracks and digital experiences.</p></div>
 
-  <input type="tel" id="phone" placeholder="Enter your phone number" autofocus />
-  <br />
-  <button onclick="submitPhone()">Get Started</button>
-  <div id="error"></div>
+  <div class="animated">
+    <input type="tel" id="phone" placeholder="Enter your phone number" autofocus />
+    <br />
+    <button onclick="submitPhone()">Get Started</button>
+    <div id="error"></div>
+  </div>
 
   <script>
     async function submitPhone() {
